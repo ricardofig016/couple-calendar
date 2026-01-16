@@ -9,59 +9,44 @@ This repository is a lightweight Expo (React Native) application designed to syn
   - **Mechanism**: The app sends a `POST` request to the script URL (stored in `EXPO_PUBLIC_SCRIPT_URL`).
   - **Payload Structure**:
     ```json
-    {
-      "title": "Date Night",
-      "description": "Dinner at 7",
-      "start": "2026-01-16T19:00:00.000Z",
-      "end": "2026-01-16T21:00:00.000Z"
-    }
+    { "title": "Date Night", "description": "Dinner at 7", "start": "2026-01-16T19:00:00Z", "end": "2026-01-16T21:00:00Z" }
     ```
-  - **Permissions**: The script must be deployed with **Execute as: Me** and **Who has access: Anyone**. This allows the app to create events on the user's calendar without an additional login screen.
+  - **Permissions**: The script must be deployed with **Execute as: Me** and **Who has access: Anyone**.
 
-## Google Apps Script Logic
+## Preset System & Dynamic Descriptions
 
-The script (deployed as a Web App) behaves as follows:
+The app uses a preset system defined in [utils/preset.ts](utils/preset.ts) to simplify event creation.
 
-```javascript
-function doPost(e) {
-  var data = JSON.parse(e.postData.contents);
-  // Shared Calendar ID
-  var calendar = CalendarApp.getCalendarById("46dbc842685af34b7d53367ba892d060ac0353abb50243a3443c65e9f1792f93@group.calendar.google.com");
-
-  // Creates event on the shared calendar
-  calendar.createEvent(data.title, new Date(data.start), new Date(data.end), {
-    description: data.description,
-  });
-
-  return ContentService.createTextOutput("Success");
-}
-```
-
-- **`doPost(e)`**: Entry point for the mobile app's `fetch` call.
-- **Shared Calendar**: Uses `getCalendarById` with the specific ID to provide equal access to both users.
-- **Security**: Relies on the obfuscated Script URL. No other authentication is implemented.
+- **Classes**: Every preset extends `Preset`. Use `StandardPreset` for static content or create a class (e.g., `MoviePreset`) for dynamic logic.
+- **Logic Resolution**: The `resolve(description)` method handles transformations before sending to the backend. Use this for RNG or placeholder replacement.
+- **Rich Text**: Google Calendar descriptions support a limited subset of **HTML tags**. Always use these for formatting:
+  - `<b>Bold Text</b>`, `<i>Italics</i>`, `<u>Underline</u>`, `<a href="...">Link</a>`.
+- **Example Pattern**:
+  ```typescript
+  // Replacing a placeholder [RNG] with dynamic content in utils/preset.ts
+  override resolve(current: string): string {
+    return current.replace("[RNG]", Math.random() > 0.5 ? "<b>Ricardo</b>" : "<b>Carolina</b>");
+  }
+  ```
 
 ## Project Conventions
 
-- **Routing**: Follow `expo-router` conventions. The main entry point is `app/(tabs)/index.tsx`.
+- **Routing**: Main UI is in [app/(tabs)/index.tsx](<app/(tabs)/index.tsx>). Follow `expo-router` conventions.
 - **Styling**:
-  - Use themed components: `ThemedText` and `ThemedView` from `components/`.
-  - Reference colors from [constants/theme.ts](constants/theme.ts) using the `useThemeColor` hook.
-  - Avoid hardcoding hex colors unless necessary.
-- **Environment Variables**: Always prefix client-side variables with `EXPO_PUBLIC_` to ensure they are bundled by Expo.
-- **Components**:
-  - Generic UI components should go into `components/ui/`.
-  - Feature-specific components stay in `components/`.
+  - Always use `ThemedText` and `ThemedView` from `components/`.
+  - Fetch colors via `useThemeColor` hook from [hooks/use-theme-color.ts](hooks/use-theme-color.ts).
+  - Avoid hardcoding hex colors; reference [constants/theme.ts](constants/theme.ts).
+- **Date/Time**: Handled via `@react-native-community/datetimepicker`. Combine dates and times manually before converting to ISO strings.
 
 ## Critical Workflows
 
-- **Development**: Run `npx expo start` to test in Expo Go or an emulator.
-- **Direct Redirects**: Currently disabled in favor of the Apps Script approach. Do not re-enable OAuth unless explicitly asked.
-- **Adding Dependencies**: Use `npx expo install` to ensure compatibility with the current Expo SDK version.
+- **Development**: Run `npx expo start`.
+- **Environment**: Client-side variables must be prefixed with `EXPO_PUBLIC_`.
+- **Dependencies**: Use `npx expo install` for compatibility.
 
 ## Key Files
 
-- [package.json](package.json): Project dependencies and Expo SDK version (~54.0.31).
-- [app.json](app.json): Expo configuration, including the `scheme` (`couplecalendar`) and `package` name.
-- [.env](.env): Local environment variables (not committed to git).
-- [plan.md](plan.md): The implementation roadmap for the project.
+- [app/(tabs)/index.tsx](<app/(tabs)/index.tsx>): Primary event creation form.
+- [utils/preset.ts](utils/preset.ts): Definition of all available event templates and logic.
+- [constants/theme.ts](constants/theme.ts): Source of truth for light/dark mode colors.
+- [package.json](package.json): Expo SDK and project metadata.
