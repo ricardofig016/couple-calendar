@@ -7,8 +7,8 @@
 - [ ] feat: while the event being added, show a loading spinner to indicate the process is ongoing.
 - [ ] feat: add a button to clear everything to default state.
 - [ ] fix: remove unused explore tab
-- [ ] fix: vertical spacing between start/end time and their inputs (while spans multiple days in not chekced) is smaller than the other vertical spacings between date and time labels and their inputs
 
+- [x] fix: vertical spacing between start/end time and their inputs (while spans multiple days in not chekced) is smaller than the other vertical spacings between date and time labels and their inputs
 - [x] fix: text in date and time inputs is too light
 - [x] **Fun Automation**: For specific presets like "Grocery Shopping," use an RNG (Random Number Generator) to decide who does what. Example: "It's [Name]'s turn to push the cart!!" or "You're paying this time!" automatically added to the description.
 - [x] **Auto-Emoji Titles**: Automatically prepend an emoji to the event title based on the preset (e.g., 🍴 for Dinner, 🍿 for Movie).

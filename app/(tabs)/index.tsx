@@ -165,14 +165,14 @@ export default function HomeScreen() {
             </TouchableOpacity>
 
             <View style={styles.row}>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, gap: 12 }}>
                 <ThemedText type="defaultSemiBold">Start</ThemedText>
                 <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={() => setShowStartTimePicker(true)}>
                   <ThemedText type="defaultSemiBold">{startTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
                 </TouchableOpacity>
               </View>
               <View style={{ width: 20 }} />
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, gap: 12 }}>
                 <ThemedText type="defaultSemiBold">End</ThemedText>
                 <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={() => setShowEndTimePicker(true)}>
                   <ThemedText type="defaultSemiBold">{endTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
