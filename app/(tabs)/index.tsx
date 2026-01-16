@@ -7,12 +7,17 @@ import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { Preset, PRESETS } from "@/utils/preset";
 
 // Using environment variable for security
 const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
 
 export default function HomeScreen() {
+  const color = useThemeColor({}, "text");
+  const backgroundColor = useThemeColor({}, "background");
+  const iconColor = useThemeColor({}, "icon");
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isMultiDay, setIsMultiDay] = useState(false);
@@ -133,35 +138,44 @@ export default function HomeScreen() {
         </ScrollView>
 
         <ThemedText type="defaultSemiBold">Title</ThemedText>
-        <TextInput style={styles.input} placeholder="e.g. Dinner Date" placeholderTextColor="#888" value={title} onChangeText={setTitle} />
+        <TextInput style={[styles.input, { color, backgroundColor, borderColor: iconColor }]} placeholder="e.g. Dinner Date" placeholderTextColor={iconColor} value={title} onChangeText={setTitle} />
 
         <ThemedText type="defaultSemiBold">Description (Optional)</ThemedText>
-        <TextInput style={[styles.input, { height: 80 }]} placeholder="Details..." placeholderTextColor="#888" multiline value={description} onChangeText={setDescription} />
+        <TextInput
+          style={[styles.input, { height: 80, color, backgroundColor, borderColor: iconColor }]}
+          placeholder="Details..."
+          placeholderTextColor={iconColor}
+          multiline
+          value={description}
+          onChangeText={setDescription}
+        />
 
         <TouchableOpacity style={styles.checkboxContainer} onPress={() => setIsMultiDay(!isMultiDay)} activeOpacity={0.8}>
           <Checkbox value={isMultiDay} onValueChange={setIsMultiDay} color={isMultiDay ? "#0a7ea4" : undefined} />
-          <ThemedText style={styles.checkboxLabel}>Spans multiple days?</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.checkboxLabel}>
+            Spans multiple days?
+          </ThemedText>
         </TouchableOpacity>
 
         {!isMultiDay ? (
           <>
             <ThemedText type="defaultSemiBold">Date</ThemedText>
-            <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-              <ThemedText>{date.toLocaleDateString("en-GB")}</ThemedText>
+            <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={() => setShowDatePicker(true)}>
+              <ThemedText type="defaultSemiBold">{date.toLocaleDateString("en-GB")}</ThemedText>
             </TouchableOpacity>
 
             <View style={styles.row}>
               <View style={{ flex: 1 }}>
                 <ThemedText type="defaultSemiBold">Start</ThemedText>
-                <TouchableOpacity style={styles.dateButton} onPress={() => setShowStartTimePicker(true)}>
-                  <ThemedText>{startTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
+                <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={() => setShowStartTimePicker(true)}>
+                  <ThemedText type="defaultSemiBold">{startTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
                 </TouchableOpacity>
               </View>
               <View style={{ width: 20 }} />
               <View style={{ flex: 1 }}>
                 <ThemedText type="defaultSemiBold">End</ThemedText>
-                <TouchableOpacity style={styles.dateButton} onPress={() => setShowEndTimePicker(true)}>
-                  <ThemedText>{endTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
+                <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={() => setShowEndTimePicker(true)}>
+                  <ThemedText type="defaultSemiBold">{endTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
                 </TouchableOpacity>
               </View>
             </View>
@@ -170,23 +184,23 @@ export default function HomeScreen() {
           <>
             <ThemedText type="defaultSemiBold">Start</ThemedText>
             <View style={styles.row}>
-              <TouchableOpacity style={[styles.dateButton, { flex: 1.5 }]} onPress={() => setShowMultiStartDatePicker(true)}>
-                <ThemedText>{multiStartDate.toLocaleDateString("en-GB")}</ThemedText>
+              <TouchableOpacity style={[styles.dateButton, { flex: 1.5, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiStartDatePicker(true)}>
+                <ThemedText type="defaultSemiBold">{multiStartDate.toLocaleDateString("en-GB")}</ThemedText>
               </TouchableOpacity>
               <View style={{ width: 10 }} />
-              <TouchableOpacity style={[styles.dateButton, { flex: 1 }]} onPress={() => setShowMultiStartTimePicker(true)}>
-                <ThemedText>{multiStartDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
+              <TouchableOpacity style={[styles.dateButton, { flex: 1, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiStartTimePicker(true)}>
+                <ThemedText type="defaultSemiBold">{multiStartDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
               </TouchableOpacity>
             </View>
 
             <ThemedText type="defaultSemiBold">End</ThemedText>
             <View style={styles.row}>
-              <TouchableOpacity style={[styles.dateButton, { flex: 1.5 }]} onPress={() => setShowMultiEndDatePicker(true)}>
-                <ThemedText>{multiEndDate.toLocaleDateString("en-GB")}</ThemedText>
+              <TouchableOpacity style={[styles.dateButton, { flex: 1.5, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiEndDatePicker(true)}>
+                <ThemedText type="defaultSemiBold">{multiEndDate.toLocaleDateString("en-GB")}</ThemedText>
               </TouchableOpacity>
               <View style={{ width: 10 }} />
-              <TouchableOpacity style={[styles.dateButton, { flex: 1 }]} onPress={() => setShowMultiEndTimePicker(true)}>
-                <ThemedText>{multiEndDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
+              <TouchableOpacity style={[styles.dateButton, { flex: 1, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiEndTimePicker(true)}>
+                <ThemedText type="defaultSemiBold">{multiEndDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
               </TouchableOpacity>
             </View>
           </>
@@ -321,18 +335,13 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
-    color: "#000",
-    backgroundColor: "#fff",
   },
   dateButton: {
     borderWidth: 1,
-    borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
-    backgroundColor: "#fff",
   },
   row: {
     flexDirection: "row",
