@@ -1,98 +1,179 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useState } from "react";
+import { Alert, Button, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import ParallaxScrollView from "@/components/parallax-scroll-view";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+
+// Using environment variable for security
+const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState(new Date());
+  const [startTime, setStartTime] = useState(new Date());
+  const [endTime, setEndTime] = useState(new Date(new Date().getTime() + 60 * 60 * 1000));
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!title) {
+      Alert.alert("Error", "Please enter a title");
+      return;
+    }
+
+    if (!SCRIPT_URL) {
+      Alert.alert("Error", "Script URL is not configured");
+      return;
+    }
+
+    // Combine date and times
+    const start = new Date(date);
+    start.setHours(startTime.getHours(), startTime.getMinutes());
+
+    const end = new Date(date);
+    end.setHours(endTime.getHours(), endTime.getMinutes());
+
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          title,
+          description,
+          start: start.toISOString(),
+          end: end.toISOString(),
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert("Success", "Event added to calendars!");
+        setTitle("");
+        setDescription("");
+      } else {
+        throw new Error("Failed to add event");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Something went wrong. Check your Script URL: " + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
+  return (
+    <ParallaxScrollView headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }} headerImage={<IconSymbol size={140} color="#808080" name="calendar" style={styles.headerImage} />}>
+      <ThemedView style={styles.titleContainer}>
+        <ThemedText type="title">Add Event</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
+
+      <ThemedView style={styles.form}>
+        <ThemedText type="defaultSemiBold">Event Title</ThemedText>
+        <TextInput style={styles.input} placeholder="e.g. Dinner Date" placeholderTextColor="#888" value={title} onChangeText={setTitle} />
+
+        <ThemedText type="defaultSemiBold">Description (Optional)</ThemedText>
+        <TextInput style={[styles.input, { height: 80 }]} placeholder="Details..." placeholderTextColor="#888" multiline value={description} onChangeText={setDescription} />
+
+        <ThemedText type="defaultSemiBold">Date</ThemedText>
+        <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+          <ThemedText>{date.toLocaleDateString()}</ThemedText>
+        </TouchableOpacity>
+
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <ThemedText type="defaultSemiBold">Start</ThemedText>
+            <TouchableOpacity style={styles.dateButton} onPress={() => setShowStartTimePicker(true)}>
+              <ThemedText>{startTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</ThemedText>
+            </TouchableOpacity>
+          </View>
+          <View style={{ width: 20 }} />
+          <View style={{ flex: 1 }}>
+            <ThemedText type="defaultSemiBold">End</ThemedText>
+            <TouchableOpacity style={styles.dateButton} onPress={() => setShowEndTimePicker(true)}>
+              <ThemedText>{endTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={{ marginTop: 20 }}>
+          <Button title="Schedule for Both" onPress={handleSubmit} color="#0a7ea4" />
+        </View>
       </ThemedView>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) setDate(selectedDate);
+          }}
+        />
+      )}
+
+      {showStartTimePicker && (
+        <DateTimePicker
+          value={startTime}
+          mode="time"
+          is24Hour={true}
+          display="default"
+          onChange={(event, selectedTime) => {
+            setShowStartTimePicker(false);
+            if (selectedTime) setStartTime(selectedTime);
+          }}
+        />
+      )}
+
+      {showEndTimePicker && (
+        <DateTimePicker
+          value={endTime}
+          mode="time"
+          is24Hour={true}
+          display="default"
+          onChange={(event, selectedTime) => {
+            setShowEndTimePicker(false);
+            if (selectedTime) setEndTime(selectedTime);
+          }}
+        />
+      )}
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  headerImage: {
+    color: "#808080",
+    bottom: -20,
+    left: 20,
+    position: "absolute",
+  },
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
     gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  form: {
+    padding: 2,
+    gap: 12,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    color: "#000",
+    backgroundColor: "#fff",
+  },
+  dateButton: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: "#fff",
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
 });
