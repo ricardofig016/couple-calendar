@@ -4,49 +4,49 @@ This repository is a lightweight Expo (React Native) application designed to syn
 
 ## Architecture & Integration
 
-- **Frontend**: Built with Expo and `expo-router` using file-based routing.
+- **Frontend**: Built with Expo and `expo-router` using file-based routing. Main logic for event creation is in [app/(tabs)/index.tsx](<app/(tabs)/index.tsx>).
 - **Backend (No-Auth Flow)**: The app bypasses OAuth by using a **Google Apps Script Web App** as a proxy.
   - **Mechanism**: The app sends a `POST` request to the script URL (stored in `EXPO_PUBLIC_SCRIPT_URL`).
   - **Payload Structure**:
     ```json
     { "title": "Date Night", "description": "Dinner at 7", "start": "2026-01-16T19:00:00Z", "end": "2026-01-16T21:00:00Z" }
     ```
-  - **Permissions**: The script must be deployed with **Execute as: Me** and **Who has access: Anyone**.
+- **Permissions**: The script must be deployed with **Execute as: Me** and **Who has access: Anyone**.
 
-## Preset System & Dynamic Descriptions
+## Preset System & Dynamic Logic
 
-The app uses a preset system defined in [utils/preset.ts](utils/preset.ts) to simplify event creation.
+The app uses a class-based preset system in [utils/preset.ts](utils/preset.ts) to handle template resolution.
 
-- **Classes**: Every preset extends `Preset`. Use `StandardPreset` for static content or create a class (e.g., `MoviePreset`) for dynamic logic.
-- **Logic Resolution**: The `resolve(description)` method handles transformations before sending to the backend. Use this for RNG or placeholder replacement.
-- **Rich Text**: Google Calendar descriptions support a limited subset of **HTML tags**. Always use these for formatting:
-  - `<b>Bold Text</b>`, `<i>Italics</i>`, `<u>Underline</u>`, `<a href="...">Link</a>`.
-- **Example Pattern**:
-  ```typescript
-  // Replacing a placeholder [RNG] with dynamic content in utils/preset.ts
-  override resolve(current: string): string {
-    return current.replace("[RNG]", Math.random() > 0.5 ? "<b>Ricardo</b>" : "<b>Carolina</b>");
-  }
-  ```
+### Preset Classes
+
+- `Preset`: Base class for templates.
+- `resolve(description)`: Resolves placeholders like `[A]`, `[B]`, `[KEY]`, and `[KEY: options]`.
+- `resolveTitle(title, startTime)`: Overridable for time-based naming (e.g., changing "Dinner" to "Breakfast" based on `startTime`).
+
+### Placeholder Patterns
+
+- `[A]` and `[B]`: Linked couple (one is Ricardo, the other is Carolina).
+- `[KEY]`: Picks one of the two names randomly.
+- `[KEY: option1, option2]`: Picks one selection and lists the others as "Better luck next time".
+
+### Rich Text Formatting
+
+Google Calendar descriptions support specific HTML tags. **Always use these for formatting**:
+`<b>Bold</b>`, `<i>Italics</i>`, `<u>Underline</u>`, `<a href="...">Link</a>`, `\n` for newlines.
 
 ## Project Conventions
 
-- **Routing**: Main UI is in [app/(tabs)/index.tsx](<app/(tabs)/index.tsx>). Follow `expo-router` conventions.
+- **Routing**: Follow `expo-router` conventions. Tabs are in `app/(tabs)/`.
 - **Styling**:
   - Always use `ThemedText` and `ThemedView` from `components/`.
-  - Fetch colors via `useThemeColor` hook from [hooks/use-theme-color.ts](hooks/use-theme-color.ts).
-  - Avoid hardcoding hex colors; reference [constants/theme.ts](constants/theme.ts).
-- **Date/Time**: Handled via `@react-native-community/datetimepicker`. Combine dates and times manually before converting to ISO strings.
+  - Fetch colors via `useThemeColor` hook: `const color = useThemeColor({}, 'text');`.
+  - Avoid hardcoding colors; use `Colors` from [constants/theme.ts](constants/theme.ts).
+- **Date/Time**:
+  - Handled via `@react-native-community/datetimepicker`.
+  - UI displays use `en-GB` locale: `date.toLocaleDateString("en-GB")`.
+  - Payload must be ISO strings (`toISOString()`).
 
-## Critical Workflows
+## Key Workflows
 
-- **Development**: Run `npx expo start`.
-- **Environment**: Client-side variables must be prefixed with `EXPO_PUBLIC_`.
-- **Dependencies**: Use `npx expo install` for compatibility.
-
-## Key Files
-
-- [app/(tabs)/index.tsx](<app/(tabs)/index.tsx>): Primary event creation form.
-- [utils/preset.ts](utils/preset.ts): Definition of all available event templates and logic.
-- [constants/theme.ts](constants/theme.ts): Source of truth for light/dark mode colors.
-- [package.json](package.json): Expo SDK and project metadata.
+- **Dev**: `npx expo start`
+- **Build**: `npx eas build --platform android --profile preview` (requires `eas.json` env config).
