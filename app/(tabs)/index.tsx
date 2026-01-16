@@ -82,14 +82,17 @@ export default function HomeScreen() {
     setIsLoading(true);
 
     let startIso, endIso;
+    let eventStartDate: Date;
 
     if (isMultiDay) {
+      eventStartDate = multiStartDate;
       startIso = multiStartDate.toISOString();
       endIso = multiEndDate.toISOString();
     } else {
       // Combine date and times
       const start = new Date(date);
       start.setHours(startTime.getHours(), startTime.getMinutes());
+      eventStartDate = start;
 
       const end = new Date(date);
       end.setHours(endTime.getHours(), endTime.getMinutes());
@@ -99,12 +102,13 @@ export default function HomeScreen() {
     }
 
     try {
+      const finalTitle = selectedPreset ? selectedPreset.resolveTitle(title, eventStartDate) : title;
       const finalDescription = selectedPreset ? selectedPreset.resolve(description) : description;
 
       const response = await fetch(SCRIPT_URL, {
         method: "POST",
         body: JSON.stringify({
-          title,
+          title: finalTitle,
           description: finalDescription,
           start: startIso,
           end: endIso,

@@ -8,8 +8,17 @@ export class Preset {
   ) {}
 
   /**
+   * Resolves any logic within the title.
+   * By default, it returns the title as is.
+   */
+  resolveTitle(currentTitle: string, _startTime: Date): string {
+    return currentTitle;
+  }
+
+  /**
    * Resolves any logic within the description by replacing placeholders
-   * for choices [KEY: item1, item2], independent people [KEY],
+   * for choices [KEY: item1, item2],
+   * independent people [KEY],
    * and a linked couple [A] and [B].
    */
   resolve(currentDescription: string): string {
@@ -57,10 +66,35 @@ export class Preset {
   }
 }
 
+export class DinnerPreset extends Preset {
+  constructor() {
+    super("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\n\n[PAYER] is treating tonight! 💸", ["FOOD"], ["PAYER"]);
+  }
+
+  override resolveTitle(currentTitle: string, startTime: Date): string {
+    const hours = startTime.getHours();
+    const minutes = startTime.getMinutes();
+    const timeValue = hours + minutes / 60;
+
+    let meal = "Dinner";
+    if (timeValue >= 5 && timeValue < 10.5) {
+      meal = "Breakfast";
+    } else if (timeValue >= 10.5 && timeValue < 15) {
+      meal = "Lunch";
+    } else if (timeValue >= 15 && timeValue < 18.5) {
+      meal = "Snack";
+    }
+
+    // Replace "Dinner" with the appropriate meal name
+    // Matches "Dinner" regardless of case, but keeps emojis and other text
+    return currentTitle.replace(/Dinner/i, meal);
+  }
+}
+
 export const PRESETS: Preset[] = [
-  new Preset("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\n\n[PAYER] is treating tonight! 💸", ["FOOD"], ["PAYER"]),
+  new DinnerPreset(),
   new Preset("🍿 Movie", "🍿 Movie Night", "We'll watch: [MOVIES: Movie 1, Movie 2, ...]", ["MOVIES"]),
   new Preset("🛒 Shopping", "🛒 Shopping", "[A] is paying today! 💸\n\nThat means [B] is on cart duty! 🛒💨", [], []),
-  new Preset("😴 Sleepover", "😴 Sleepover", "Where we staying: [LOCATION: Ricardo's, Carolina's]\n\nDon't forget the snacks! 🍪", ["LOCATION"]),
+  new Preset("😴 Sleepover", "😴 Sleepover", "Where we staying: [LOCATION]'s\n\nDon't forget the snacks! 🍪", [], ["LOCATION"]),
   new Preset("🏋️ Gym", "🏋️ Gym Session", "Gains. Gains! GAINS!! 💪✨\n\nDon't forget to stay hydrated! 💧"),
 ];
