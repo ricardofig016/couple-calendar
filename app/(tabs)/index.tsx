@@ -160,7 +160,7 @@ export default function HomeScreen() {
             <TouchableOpacity style={styles.checkboxContainer} onPress={() => setIsMultiDay(!isMultiDay)} activeOpacity={0.8}>
               <Checkbox value={isMultiDay} onValueChange={setIsMultiDay} color={isMultiDay ? "#0a7ea4" : undefined} />
               <ThemedText type="defaultSemiBold" style={styles.checkboxLabel}>
-                Spans multiple days?
+                multiple days
               </ThemedText>
             </TouchableOpacity>
 
