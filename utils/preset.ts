@@ -1,90 +1,58 @@
-export abstract class Preset {
-  constructor(public readonly label: string, public readonly title: string, public readonly description: string) {}
+export class Preset {
+  constructor(
+    public readonly label: string,
+    public readonly title: string,
+    public readonly description: string,
+    private readonly choiceKeys: string[] = [],
+    private readonly personKeys: string[] = []
+  ) {}
 
   /**
-   * Resolves any logic within the description.
-   * By default, it returns the description as is.
+   * Resolves any logic within the description by replacing placeholders
+   * for choices [KEY: item1, item2] and people [KEY].
    */
   resolve(currentDescription: string): string {
-    return currentDescription;
-  }
+    let resolved = currentDescription;
 
-  /**
-   * Utility to pick a random person from the couple.
-   */
-  protected getRandomPerson(): string {
-    return Math.random() > 0.5 ? "Ricardo" : "Carolina";
-  }
+    // Resolve person placeholders [KEY]
+    for (const key of this.personKeys) {
+      const regex = new RegExp(`\\[${key}\\]`, "gi");
+      resolved = resolved.replace(regex, () => {
+        const person = Math.random() > 0.5 ? "Ricardo" : "Carolina";
+        return `<b>${person}</b>`;
+      });
+    }
 
-  /**
-   * Helper to resolve choices in the format [KEY: item1, item2, ...]
-   */
-  protected resolveChoice(description: string, key: string): string {
-    const regex = new RegExp(`\\[${key}:\\s*(.*?)\\]`, "i");
-    const match = description.match(regex);
+    // Resolve choice placeholders [KEY: item1, item2, ...]
+    for (const key of this.choiceKeys) {
+      const regex = new RegExp(`\\[${key}:\\s*(.*?)\\]`, "gi");
+      resolved = resolved.replace(regex, (match, items) => {
+        const list = items
+          .split(",")
+          .map((m: string) => m.trim())
+          .filter((m: string) => m !== "");
 
-    if (match) {
-      const list = match[1]
-        .split(",")
-        .map((m) => m.trim())
-        .filter((m) => m !== "");
+        if (list.length === 0) return match;
 
-      if (list.length > 0) {
         const selected = list[Math.floor(Math.random() * list.length)];
-        const others = list.filter((m) => m !== selected);
+        const others = list.filter((m: string) => m !== selected);
 
         let resultText = `<b>${selected}</b>`;
         if (others.length > 0) {
           const othersList = others.length > 1 ? `${others.slice(0, -1).join(", ")} and ${others[others.length - 1]}` : others[0];
           resultText += `\nBetter luck next time for ${othersList}.`;
         }
-
-        return description.replace(match[0], resultText);
-      }
-    }
-    return description;
-  }
-}
-
-export class StandardPreset extends Preset {}
-
-export class ShoppingPreset extends Preset {
-  constructor() {
-    super("🛒 Shopping", "🛒 Shopping", "\nWho will be pushing the cart: [RNG_SHOPPING]");
-  }
-
-  override resolve(currentDescription: string): string {
-    if (currentDescription.includes("[RNG_SHOPPING]")) {
-      return currentDescription.replace("[RNG_SHOPPING]", `<b>${this.getRandomPerson()}</b> has to push the cart today!`);
-    }
-    return currentDescription;
-  }
-}
-
-export class MoviePreset extends Preset {
-  constructor() {
-    super("🍿 Movie", "🍿 Movie Night", "We'll watch: [MOVIES: Movie 1, Movie 2, ...]");
-  }
-
-  override resolve(currentDescription: string): string {
-    return this.resolveChoice(currentDescription, "MOVIES");
-  }
-}
-
-export class DinnerPreset extends Preset {
-  constructor() {
-    super("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\n\nWho pays: [WHO_PAYS]");
-  }
-
-  override resolve(currentDescription: string): string {
-    let resolved = this.resolveChoice(currentDescription, "FOOD");
-
-    if (resolved.includes("[WHO_PAYS]")) {
-      resolved = resolved.replace("[WHO_PAYS]", `<b>${this.getRandomPerson()}</b> is treating tonight! 💸`);
+        return resultText;
+      });
     }
 
     return resolved;
   }
 }
 
-export const PRESETS: Preset[] = [new DinnerPreset(), new MoviePreset(), new ShoppingPreset(), new StandardPreset("🏋️ Gym", "🏋️ Gym Session", "")];
+export const PRESETS: Preset[] = [
+  new Preset("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\n\n[PAYER] is treating tonight! 💸", ["FOOD"], ["PAYER"]),
+  new Preset("🍿 Movie", "🍿 Movie Night", "We'll watch: [MOVIES: Movie 1, Movie 2, ...]", ["MOVIES"]),
+  new Preset("🛒 Shopping", "🛒 Shopping", "[PUSHER] has to push the cart today!", [], ["PUSHER"]),
+  new Preset("🏋️ Gym", "🏋️ Gym Session", ""),
+];
