@@ -1,7 +1,7 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Checkbox } from "expo-checkbox";
 import { useState } from "react";
-import { Alert, Button, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
@@ -21,6 +21,7 @@ export default function HomeScreen() {
   const [description, setDescription] = useState("");
   const [isMultiDay, setIsMultiDay] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Default to tomorrow at 12:00
   const [date, setDate] = useState(() => {
@@ -78,6 +79,8 @@ export default function HomeScreen() {
       return;
     }
 
+    setIsLoading(true);
+
     let startIso, endIso;
 
     if (isMultiDay) {
@@ -117,6 +120,8 @@ export default function HomeScreen() {
       }
     } catch (error) {
       Alert.alert("Error", "Something went wrong. Check your Script URL: " + (error instanceof Error ? error.message : String(error)));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -132,7 +137,7 @@ export default function HomeScreen() {
             <ThemedText type="defaultSemiBold">Presets</ThemedText>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetsContainer}>
               {PRESETS.map((preset) => (
-                <TouchableOpacity key={preset.label} style={styles.presetChip} onPress={() => applyPreset(preset)}>
+                <TouchableOpacity key={preset.label} style={[styles.presetChip, isLoading && { opacity: 0.5 }]} onPress={() => applyPreset(preset)} disabled={isLoading}>
                   <ThemedText style={styles.presetText}>{preset.label}</ThemedText>
                 </TouchableOpacity>
               ))}
@@ -145,6 +150,7 @@ export default function HomeScreen() {
               placeholderTextColor={iconColor}
               value={title}
               onChangeText={setTitle}
+              editable={!isLoading}
             />
 
             <ThemedText type="defaultSemiBold">Description (Optional)</ThemedText>
@@ -155,10 +161,11 @@ export default function HomeScreen() {
               multiline
               value={description}
               onChangeText={setDescription}
+              editable={!isLoading}
             />
 
-            <TouchableOpacity style={styles.checkboxContainer} onPress={() => setIsMultiDay(!isMultiDay)} activeOpacity={0.8}>
-              <Checkbox value={isMultiDay} onValueChange={setIsMultiDay} color={isMultiDay ? "#0a7ea4" : undefined} />
+            <TouchableOpacity style={styles.checkboxContainer} onPress={() => setIsMultiDay(!isMultiDay)} activeOpacity={0.8} disabled={isLoading}>
+              <Checkbox value={isMultiDay} onValueChange={setIsMultiDay} color={isMultiDay ? "#0a7ea4" : undefined} disabled={isLoading} />
               <ThemedText type="defaultSemiBold" style={styles.checkboxLabel}>
                 multiple days
               </ThemedText>
@@ -167,21 +174,21 @@ export default function HomeScreen() {
             {!isMultiDay ? (
               <>
                 <ThemedText type="defaultSemiBold">Date</ThemedText>
-                <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={() => setShowDatePicker(true)}>
+                <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={() => setShowDatePicker(true)} disabled={isLoading}>
                   <ThemedText type="defaultSemiBold">{date.toLocaleDateString("en-GB")}</ThemedText>
                 </TouchableOpacity>
 
                 <View style={styles.row}>
                   <View style={{ flex: 1, gap: 12 }}>
                     <ThemedText type="defaultSemiBold">Start</ThemedText>
-                    <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={() => setShowStartTimePicker(true)}>
+                    <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={() => setShowStartTimePicker(true)} disabled={isLoading}>
                       <ThemedText type="defaultSemiBold">{startTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
                     </TouchableOpacity>
                   </View>
                   <View style={{ width: 20 }} />
                   <View style={{ flex: 1, gap: 12 }}>
                     <ThemedText type="defaultSemiBold">End</ThemedText>
-                    <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={() => setShowEndTimePicker(true)}>
+                    <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={() => setShowEndTimePicker(true)} disabled={isLoading}>
                       <ThemedText type="defaultSemiBold">{endTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
                     </TouchableOpacity>
                   </View>
@@ -191,22 +198,22 @@ export default function HomeScreen() {
               <>
                 <ThemedText type="defaultSemiBold">Start</ThemedText>
                 <View style={styles.row}>
-                  <TouchableOpacity style={[styles.dateButton, { flex: 1.5, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiStartDatePicker(true)}>
+                  <TouchableOpacity style={[styles.dateButton, { flex: 1.5, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiStartDatePicker(true)} disabled={isLoading}>
                     <ThemedText type="defaultSemiBold">{multiStartDate.toLocaleDateString("en-GB")}</ThemedText>
                   </TouchableOpacity>
                   <View style={{ width: 10 }} />
-                  <TouchableOpacity style={[styles.dateButton, { flex: 1, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiStartTimePicker(true)}>
+                  <TouchableOpacity style={[styles.dateButton, { flex: 1, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiStartTimePicker(true)} disabled={isLoading}>
                     <ThemedText type="defaultSemiBold">{multiStartDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
                   </TouchableOpacity>
                 </View>
 
                 <ThemedText type="defaultSemiBold">End</ThemedText>
                 <View style={styles.row}>
-                  <TouchableOpacity style={[styles.dateButton, { flex: 1.5, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiEndDatePicker(true)}>
+                  <TouchableOpacity style={[styles.dateButton, { flex: 1.5, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiEndDatePicker(true)} disabled={isLoading}>
                     <ThemedText type="defaultSemiBold">{multiEndDate.toLocaleDateString("en-GB")}</ThemedText>
                   </TouchableOpacity>
                   <View style={{ width: 10 }} />
-                  <TouchableOpacity style={[styles.dateButton, { flex: 1, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiEndTimePicker(true)}>
+                  <TouchableOpacity style={[styles.dateButton, { flex: 1, backgroundColor, borderColor: iconColor }]} onPress={() => setShowMultiEndTimePicker(true)} disabled={isLoading}>
                     <ThemedText type="defaultSemiBold">{multiEndDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
                   </TouchableOpacity>
                 </View>
@@ -214,7 +221,9 @@ export default function HomeScreen() {
             )}
 
             <View style={{ marginTop: 20 }}>
-              <Button title="Schedule Event" onPress={handleSubmit} color="#0a7ea4" />
+              <TouchableOpacity style={[styles.submitButton, { backgroundColor: "#0a7ea4" }, isLoading && { opacity: 0.7 }]} onPress={handleSubmit} disabled={isLoading} activeOpacity={0.8}>
+                {isLoading ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.submitButtonText}>Schedule Event</ThemedText>}
+              </TouchableOpacity>
             </View>
           </ThemedView>
 
@@ -375,6 +384,18 @@ const styles = StyleSheet.create({
   },
   presetText: {
     color: "#fff",
+    fontWeight: "600",
+  },
+  submitButton: {
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
+  },
+  submitButtonText: {
+    color: "#fff",
+    fontSize: 16,
     fontWeight: "600",
   },
 });
