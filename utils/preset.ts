@@ -9,10 +9,17 @@ export class Preset {
 
   /**
    * Resolves any logic within the description by replacing placeholders
-   * for choices [KEY: item1, item2] and people [KEY].
+   * for choices [KEY: item1, item2], independent people [KEY],
+   * and a linked couple [A] and [B].
    */
   resolve(currentDescription: string): string {
     let resolved = currentDescription;
+
+    // Resolve linked couple placeholders [A] and [B]
+    const personA = Math.random() > 0.5 ? "Ricardo" : "Carolina";
+    const personB = personA === "Ricardo" ? "Carolina" : "Ricardo";
+    resolved = resolved.replace(/\[A\]/gi, `<b>${personA}</b>`);
+    resolved = resolved.replace(/\[B\]/gi, `<b>${personB}</b>`);
 
     // Resolve person placeholders [KEY]
     for (const key of this.personKeys) {
@@ -40,7 +47,7 @@ export class Preset {
         let resultText = `<b>${selected}</b>`;
         if (others.length > 0) {
           const othersList = others.length > 1 ? `${others.slice(0, -1).join(", ")} and ${others[others.length - 1]}` : others[0];
-          resultText += `\nBetter luck next time for ${othersList}.`;
+          resultText += `\nBetter luck next time for ${othersList}. 🥈`;
         }
         return resultText;
       });
@@ -53,6 +60,7 @@ export class Preset {
 export const PRESETS: Preset[] = [
   new Preset("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\n\n[PAYER] is treating tonight! 💸", ["FOOD"], ["PAYER"]),
   new Preset("🍿 Movie", "🍿 Movie Night", "We'll watch: [MOVIES: Movie 1, Movie 2, ...]", ["MOVIES"]),
-  new Preset("🛒 Shopping", "🛒 Shopping", "[PUSHER] has to push the cart today!", [], ["PUSHER"]),
-  new Preset("🏋️ Gym", "🏋️ Gym Session", ""),
+  new Preset("🛒 Shopping", "🛒 Shopping", "[A] is paying today! 💸\n\nThat means [B] is on cart duty! 🛒💨", [], []),
+  new Preset("😴 Sleepover", "😴 Sleepover", "Where we staying: [LOCATION: Ricardo's, Carolina's]\n\nDon't forget the snacks! 🍪", ["LOCATION"]),
+  new Preset("🏋️ Gym", "🏋️ Gym Session", "Gains. Gains! GAINS!! 💪✨\n\nDon't forget to stay hydrated! 💧"),
 ];
