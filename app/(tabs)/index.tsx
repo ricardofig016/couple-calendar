@@ -13,9 +13,23 @@ const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
 export default function HomeScreen() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState(new Date());
-  const [startTime, setStartTime] = useState(new Date());
-  const [endTime, setEndTime] = useState(new Date(new Date().getTime() + 60 * 60 * 1000));
+
+  // Default to tomorrow at 12:00
+  const [date, setDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d;
+  });
+  const [startTime, setStartTime] = useState(() => {
+    const d = new Date();
+    d.setHours(12, 0, 0, 0);
+    return d;
+  });
+  const [endTime, setEndTime] = useState(() => {
+    const d = new Date();
+    d.setHours(13, 0, 0, 0);
+    return d;
+  });
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
@@ -77,21 +91,21 @@ export default function HomeScreen() {
 
         <ThemedText type="defaultSemiBold">Date</ThemedText>
         <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-          <ThemedText>{date.toLocaleDateString()}</ThemedText>
+          <ThemedText>{date.toLocaleDateString("en-GB")}</ThemedText>
         </TouchableOpacity>
 
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
             <ThemedText type="defaultSemiBold">Start</ThemedText>
             <TouchableOpacity style={styles.dateButton} onPress={() => setShowStartTimePicker(true)}>
-              <ThemedText>{startTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</ThemedText>
+              <ThemedText>{startTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
             </TouchableOpacity>
           </View>
           <View style={{ width: 20 }} />
           <View style={{ flex: 1 }}>
             <ThemedText type="defaultSemiBold">End</ThemedText>
             <TouchableOpacity style={styles.dateButton} onPress={() => setShowEndTimePicker(true)}>
-              <ThemedText>{endTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</ThemedText>
+              <ThemedText>{endTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
             </TouchableOpacity>
           </View>
         </View>
