@@ -44,3 +44,6 @@ app-example
 
 # env files
 .env
+
+# EAS config
+eas.json

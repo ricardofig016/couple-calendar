@@ -1,50 +1,105 @@
-# Welcome to your Expo app 👋
+# Couple Calendar
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A lightweight Expo (React Native) application designed to seamlessly sync events to Google Calendars for a couple. This app eliminates the complexity of OAuth by using a **Google Apps Script** proxy, making it perfect for personal use.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **No-Auth Architecture**: Bypasses complex OAuth sign-ins. Your app acts as you (the developer) to manage your calendar.
+- **Event Presets**: One-tap templates for common dates (Dinner, Movies, Gym, etc.).
+- **Dynamic Logic**:
+  - **RNG Decision Maker**: Use placeholders like `[FOOD: Sushi, Pizza]` in descriptions to let the app pick for you.
+  - **The Person Roulette**: Randomly assigns who is paying or doing chores using `[A]` and `[B]` tags.
+  - **Smart Titles**: The Dinner preset automatically changes its name to Breakfast, Lunch, or Snack based on the selected time.
+- **Flexible Scheduling**: Supports single-day timeslots and multi-day events.
+- **Themed UI**: Full support for system-wide Light and Dark modes.
 
-   ```bash
-   npm install
+## Technical Stack
+
+- **Frontend**: [Expo](https://expo.dev/) (React Native) with [Expo Router](https://docs.expo.dev/router/introduction/).
+- **Backend**: [Google Apps Script](https://www.google.com/script/start/) deployed as a Web App.
+- **Styling**: Themed components using CSS-in-JS.
+
+## Setup Instructions
+
+### 1. Google Apps Script Setup (The "Backend")
+
+1. Go to [script.google.com](https://script.google.com) and create a new project.
+2. Paste the following code, replacing `"<YOUR_CALENDAR_ID>"` with your actual Google Calendar ID:
+
+   ```javascript
+   function doPost(e) {
+     var data = JSON.parse(e.postData.contents);
+     var calendar = CalendarApp.getCalendarById("<YOUR_CALENDAR_ID>@group.calendar.google.com");
+
+     calendar.createEvent(data.title, new Date(data.start), new Date(data.end), {
+       description: data.description,
+     });
+
+     return ContentService.createTextOutput("Success");
+   }
    ```
 
-2. Start the app
+3. Click **Deploy** > **New Deployment**.
+4. Select **Web App**. Set **Execute as: Me** and **Who has access: Anyone**.
+5. Copy the **Web App URL**.
 
-   ```bash
-   npx expo start
+### 2. App Configuration
+
+1. Create a `.env` file in the root directory (if not present).
+2. Add your script URL:
+
+   ```env
+   EXPO_PUBLIC_SCRIPT_URL=https://script.google.com/macros/s/.../exec
    ```
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 3. Installation
 
 ```bash
-npm run reset-project
+# Install dependencies
+npm install
+
+# Start the development server
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Building for Android (Standalone APK)
 
-## Learn more
+This app works best as a standalone APK since it uses a custom scheme.
 
-To learn more about developing your project with Expo, look at the following resources:
+### Steps
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+1. Install EAS CLI: `npm install -g eas-cli`
+2. Run the build:
 
-## Join the community
+   ```bash
+   npx eas build --platform android --profile preview
+   ```
 
-Join our community of developers creating universal apps.
+3. Add `EXPO_PUBLIC_SCRIPT_URL` to your `eas.json` under the relevant profile:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+   ```json
+   {
+     "build": {
+       "preview": {
+         "distribution": "internal",
+         "env": {
+           "EXPO_PUBLIC_SCRIPT_URL": "https://script.google.com/macros/s/.../exec"
+         }
+       }
+     }
+   }
+   ```
+
+4. Download the generated APK and install it on your Android device.
+
+## Preset logic placeholders
+
+You can expand the presets in [utils/preset.ts](utils/preset.ts) using these placeholders in the description:
+
+- `[KEY]`: Randomly picks one of "Ricardo" or "Carolina".
+- `[A]` and `[B]`: Randomly assigns one of the two names to each tag (guaranteed to be different).
+- `[KEY: option1, option2]`: Randomly picks one option and lists the "losers" in the description.
+
+---
+
+Built with ❤️ for Ricardo & Carolina.
