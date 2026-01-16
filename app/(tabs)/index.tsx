@@ -7,6 +7,7 @@ import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Preset, PRESETS } from "@/utils/preset";
 
 // Using environment variable for security
 const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
@@ -15,6 +16,7 @@ export default function HomeScreen() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isMultiDay, setIsMultiDay] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
 
   // Default to tomorrow at 12:00
   const [date, setDate] = useState(() => {
@@ -55,21 +57,10 @@ export default function HomeScreen() {
   const [showMultiEndDatePicker, setShowMultiEndDatePicker] = useState(false);
   const [showMultiEndTimePicker, setShowMultiEndTimePicker] = useState(false);
 
-  const PRESETS = [
-    { label: "Dinner 🍴", title: "Dinner Date", description: "" },
-    { label: "Shopping 🛒", title: "Shopping", description: "RNG_SHOPPING" },
-    { label: "Gym 🏋️", title: "Gym Session", description: "" },
-    { label: "Movie 🍿", title: "Movie Night", description: "" },
-  ];
-
-  const applyPreset = (preset: (typeof PRESETS)[0]) => {
+  const applyPreset = (preset: Preset) => {
+    setSelectedPreset(preset);
     setTitle(preset.title);
-    if (preset.description === "RNG_SHOPPING") {
-      const person = Math.random() > 0.5 ? "Ricardo" : "Carolina";
-      setDescription(`${person} has to push the cart today! 🛒`);
-    } else {
-      setDescription(preset.description);
-    }
+    setDescription(preset.description);
   };
 
   const handleSubmit = async () => {
@@ -101,18 +92,20 @@ export default function HomeScreen() {
     }
 
     try {
+      const finalDescription = selectedPreset ? selectedPreset.resolve(description) : description;
+
       const response = await fetch(SCRIPT_URL, {
         method: "POST",
         body: JSON.stringify({
           title,
-          description,
+          description: finalDescription,
           start: startIso,
           end: endIso,
         }),
       });
 
       if (response.ok) {
-        Alert.alert("Success", "Event added to calendars!");
+        Alert.alert("Success", "Event added to calendar!");
         setTitle("");
         setDescription("");
       } else {
