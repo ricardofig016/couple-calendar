@@ -1,6 +1,7 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { Checkbox } from "expo-checkbox";
 import { useState } from "react";
-import { Alert, Button, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Button, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
@@ -13,6 +14,7 @@ const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
 export default function HomeScreen() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [isMultiDay, setIsMultiDay] = useState(false);
 
   // Default to tomorrow at 12:00
   const [date, setDate] = useState(() => {
@@ -31,9 +33,44 @@ export default function HomeScreen() {
     return d;
   });
 
+  // Multi-day state defaults
+  const [multiStartDate, setMultiStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(12, 0, 0, 0);
+    return d;
+  });
+  const [multiEndDate, setMultiEndDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 2);
+    d.setHours(12, 0, 0, 0);
+    return d;
+  });
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const [showMultiStartDatePicker, setShowMultiStartDatePicker] = useState(false);
+  const [showMultiStartTimePicker, setShowMultiStartTimePicker] = useState(false);
+  const [showMultiEndDatePicker, setShowMultiEndDatePicker] = useState(false);
+  const [showMultiEndTimePicker, setShowMultiEndTimePicker] = useState(false);
+
+  const PRESETS = [
+    { label: "Dinner 🍴", title: "Dinner Date", description: "" },
+    { label: "Shopping 🛒", title: "Shopping", description: "RNG_SHOPPING" },
+    { label: "Gym 🏋️", title: "Gym Session", description: "" },
+    { label: "Movie 🍿", title: "Movie Night", description: "" },
+  ];
+
+  const applyPreset = (preset: (typeof PRESETS)[0]) => {
+    setTitle(preset.title);
+    if (preset.description === "RNG_SHOPPING") {
+      const person = Math.random() > 0.5 ? "Ricardo" : "Carolina";
+      setDescription(`${person} has to push the cart today! 🛒`);
+    } else {
+      setDescription(preset.description);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!title) {
@@ -46,12 +83,22 @@ export default function HomeScreen() {
       return;
     }
 
-    // Combine date and times
-    const start = new Date(date);
-    start.setHours(startTime.getHours(), startTime.getMinutes());
+    let startIso, endIso;
 
-    const end = new Date(date);
-    end.setHours(endTime.getHours(), endTime.getMinutes());
+    if (isMultiDay) {
+      startIso = multiStartDate.toISOString();
+      endIso = multiEndDate.toISOString();
+    } else {
+      // Combine date and times
+      const start = new Date(date);
+      start.setHours(startTime.getHours(), startTime.getMinutes());
+
+      const end = new Date(date);
+      end.setHours(endTime.getHours(), endTime.getMinutes());
+
+      startIso = start.toISOString();
+      endIso = end.toISOString();
+    }
 
     try {
       const response = await fetch(SCRIPT_URL, {
@@ -59,8 +106,8 @@ export default function HomeScreen() {
         body: JSON.stringify({
           title,
           description,
-          start: start.toISOString(),
-          end: end.toISOString(),
+          start: startIso,
+          end: endIso,
         }),
       });
 
@@ -83,35 +130,77 @@ export default function HomeScreen() {
       </ThemedView>
 
       <ThemedView style={styles.form}>
-        <ThemedText type="defaultSemiBold">Event Title</ThemedText>
+        <ThemedText type="defaultSemiBold">Presets</ThemedText>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetsContainer}>
+          {PRESETS.map((preset) => (
+            <TouchableOpacity key={preset.label} style={styles.presetChip} onPress={() => applyPreset(preset)}>
+              <ThemedText style={styles.presetText}>{preset.label}</ThemedText>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <ThemedText type="defaultSemiBold">Title</ThemedText>
         <TextInput style={styles.input} placeholder="e.g. Dinner Date" placeholderTextColor="#888" value={title} onChangeText={setTitle} />
 
         <ThemedText type="defaultSemiBold">Description (Optional)</ThemedText>
         <TextInput style={[styles.input, { height: 80 }]} placeholder="Details..." placeholderTextColor="#888" multiline value={description} onChangeText={setDescription} />
 
-        <ThemedText type="defaultSemiBold">Date</ThemedText>
-        <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-          <ThemedText>{date.toLocaleDateString("en-GB")}</ThemedText>
+        <TouchableOpacity style={styles.checkboxContainer} onPress={() => setIsMultiDay(!isMultiDay)} activeOpacity={0.8}>
+          <Checkbox value={isMultiDay} onValueChange={setIsMultiDay} color={isMultiDay ? "#0a7ea4" : undefined} />
+          <ThemedText style={styles.checkboxLabel}>Spans multiple days?</ThemedText>
         </TouchableOpacity>
 
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
+        {!isMultiDay ? (
+          <>
+            <ThemedText type="defaultSemiBold">Date</ThemedText>
+            <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+              <ThemedText>{date.toLocaleDateString("en-GB")}</ThemedText>
+            </TouchableOpacity>
+
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <ThemedText type="defaultSemiBold">Start</ThemedText>
+                <TouchableOpacity style={styles.dateButton} onPress={() => setShowStartTimePicker(true)}>
+                  <ThemedText>{startTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
+                </TouchableOpacity>
+              </View>
+              <View style={{ width: 20 }} />
+              <View style={{ flex: 1 }}>
+                <ThemedText type="defaultSemiBold">End</ThemedText>
+                <TouchableOpacity style={styles.dateButton} onPress={() => setShowEndTimePicker(true)}>
+                  <ThemedText>{endTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </>
+        ) : (
+          <>
             <ThemedText type="defaultSemiBold">Start</ThemedText>
-            <TouchableOpacity style={styles.dateButton} onPress={() => setShowStartTimePicker(true)}>
-              <ThemedText>{startTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
-            </TouchableOpacity>
-          </View>
-          <View style={{ width: 20 }} />
-          <View style={{ flex: 1 }}>
+            <View style={styles.row}>
+              <TouchableOpacity style={[styles.dateButton, { flex: 1.5 }]} onPress={() => setShowMultiStartDatePicker(true)}>
+                <ThemedText>{multiStartDate.toLocaleDateString("en-GB")}</ThemedText>
+              </TouchableOpacity>
+              <View style={{ width: 10 }} />
+              <TouchableOpacity style={[styles.dateButton, { flex: 1 }]} onPress={() => setShowMultiStartTimePicker(true)}>
+                <ThemedText>{multiStartDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
+              </TouchableOpacity>
+            </View>
+
             <ThemedText type="defaultSemiBold">End</ThemedText>
-            <TouchableOpacity style={styles.dateButton} onPress={() => setShowEndTimePicker(true)}>
-              <ThemedText>{endTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
-            </TouchableOpacity>
-          </View>
-        </View>
+            <View style={styles.row}>
+              <TouchableOpacity style={[styles.dateButton, { flex: 1.5 }]} onPress={() => setShowMultiEndDatePicker(true)}>
+                <ThemedText>{multiEndDate.toLocaleDateString("en-GB")}</ThemedText>
+              </TouchableOpacity>
+              <View style={{ width: 10 }} />
+              <TouchableOpacity style={[styles.dateButton, { flex: 1 }]} onPress={() => setShowMultiEndTimePicker(true)}>
+                <ThemedText>{multiEndDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
 
         <View style={{ marginTop: 20 }}>
-          <Button title="Schedule for Both" onPress={handleSubmit} color="#0a7ea4" />
+          <Button title="Schedule Event" onPress={handleSubmit} color="#0a7ea4" />
         </View>
       </ThemedView>
 
@@ -152,6 +241,72 @@ export default function HomeScreen() {
           }}
         />
       )}
+
+      {showMultiStartDatePicker && (
+        <DateTimePicker
+          value={multiStartDate}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowMultiStartDatePicker(false);
+            if (selectedDate) {
+              const newDate = new Date(selectedDate);
+              newDate.setHours(multiStartDate.getHours(), multiStartDate.getMinutes());
+              setMultiStartDate(newDate);
+            }
+          }}
+        />
+      )}
+
+      {showMultiStartTimePicker && (
+        <DateTimePicker
+          value={multiStartDate}
+          mode="time"
+          is24Hour={true}
+          display="default"
+          onChange={(event, selectedTime) => {
+            setShowMultiStartTimePicker(false);
+            if (selectedTime) {
+              const newDate = new Date(multiStartDate);
+              newDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+              setMultiStartDate(newDate);
+            }
+          }}
+        />
+      )}
+
+      {showMultiEndDatePicker && (
+        <DateTimePicker
+          value={multiEndDate}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowMultiEndDatePicker(false);
+            if (selectedDate) {
+              const newDate = new Date(selectedDate);
+              newDate.setHours(multiEndDate.getHours(), multiEndDate.getMinutes());
+              setMultiEndDate(newDate);
+            }
+          }}
+        />
+      )}
+
+      {showMultiEndTimePicker && (
+        <DateTimePicker
+          value={multiEndDate}
+          mode="time"
+          is24Hour={true}
+          display="default"
+          onChange={(event, selectedTime) => {
+            setShowMultiEndTimePicker(false);
+            if (selectedTime) {
+              const newDate = new Date(multiEndDate);
+              newDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+              setMultiEndDate(newDate);
+            }
+          }}
+        />
+      )}
     </ParallaxScrollView>
   );
 }
@@ -189,5 +344,28 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 10,
+    gap: 8,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+  },
+  presetsContainer: {
+    gap: 8,
+    paddingVertical: 4,
+  },
+  presetChip: {
+    backgroundColor: "#0a7ea4",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  presetText: {
+    color: "#fff",
+    fontWeight: "600",
   },
 });
