@@ -5,14 +5,28 @@ export class Preset {
     public readonly description: string,
     private readonly choiceKeys: string[] = [],
     private readonly personKeys: string[] = [],
+    private readonly fieldKeys: string[] = [],
   ) {}
 
   /**
    * Resolves any logic within the title.
-   * By default, it returns the title as is.
+   * By default, it resolves fieldKeys by looking for values in the description.
    */
-  resolveTitle(currentTitle: string, _startTime: Date): string {
-    return currentTitle;
+  resolveTitle(currentTitle: string, _startTime: Date, currentDescription: string): string {
+    let resolved = currentTitle;
+
+    for (const key of this.fieldKeys) {
+      // Find [KEY: value] in description
+      const regex = new RegExp(`\\[${key}:\\s*(.*?)\\]`, "i");
+      const match = currentDescription.match(regex);
+      if (match) {
+        // Replace [KEY] in title with the value (without prompt syntax)
+        const replacer = new RegExp(`\\[${key}\\]`, "gi");
+        resolved = resolved.replace(replacer, match[1]);
+      }
+    }
+
+    return resolved;
   }
 
   /**
@@ -62,6 +76,14 @@ export class Preset {
       });
     }
 
+    // Resolve field placeholders [KEY: value]
+    for (const key of this.fieldKeys) {
+      const regex = new RegExp(`\\[${key}:\\s*(.*?)\\]`, "gi");
+      resolved = resolved.replace(regex, (match, value) => {
+        return `<b>${value}</b>`;
+      });
+    }
+
     return resolved;
   }
 }
@@ -71,7 +93,7 @@ export class DinnerPreset extends Preset {
     super("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\nLocation: \n[PAYER] is treating tonight! 💸", ["FOOD"], ["PAYER"]);
   }
 
-  override resolveTitle(currentTitle: string, startTime: Date): string {
+  override resolveTitle(currentTitle: string, startTime: Date, currentDescription: string): string {
     const hours = startTime.getHours();
     const minutes = startTime.getMinutes();
     const timeValue = hours + minutes / 60;
@@ -87,7 +109,8 @@ export class DinnerPreset extends Preset {
 
     // Replace "Dinner" with the appropriate meal name
     // Matches "Dinner" regardless of case, but keeps emojis and other text
-    return currentTitle.replace(/Dinner/i, meal);
+    const baseTitle = super.resolveTitle(currentTitle, startTime, currentDescription);
+    return baseTitle.replace(/Dinner/i, meal);
   }
 }
 
@@ -96,5 +119,7 @@ export const PRESETS: Preset[] = [
   new Preset("🍿 Movie", "🍿 Movie Night", "We'll watch: [MOVIES: Movie 1, Movie 2, ...]\nLocation: ", ["MOVIES"]),
   new Preset("🛒 Shopping", "🛒 Shopping", "[A] is paying today! 💸\nThat means [B] is on cart duty! 🛒💨", [], []),
   new Preset("😴 Sleepover", "😴 Sleepover", "Where we staying: [LOCATION]'s\nDon't forget the snacks! 🍪", [], ["LOCATION"]),
+  new Preset("🎂 Birthday", "🎂 [PERSON]'s Birthday", "Happy birthday [PERSON: value]!\n🎁 Gift: \nLocation: ", [], [], ["PERSON"]),
+  new Preset("🎉 Party", "🎉 Party", "Get ready to celebrate!\nDon't forget to bring your dancing shoes! 🕺💃\nLocation: "),
   new Preset("🏋️ Gym", "🏋️ Gym Session", "Gains. Gains! GAINS!! 💪✨\nDon't forget to stay hydrated! 💧"),
 ];

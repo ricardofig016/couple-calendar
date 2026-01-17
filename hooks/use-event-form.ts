@@ -1,8 +1,8 @@
+import { useEvents } from "@/context/event-context";
 import { Preset } from "@/utils/preset";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-native";
-import { useEvents } from "@/context/event-context";
 
 const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
 
@@ -135,7 +135,7 @@ export function useEventForm() {
     }
 
     try {
-      const finalTitle = selectedPreset ? selectedPreset.resolveTitle(title, eventStartDate) : title;
+      const finalTitle = selectedPreset ? selectedPreset.resolveTitle(title, eventStartDate, description) : title;
       const finalDescription = selectedPreset ? selectedPreset.resolve(description) : description;
 
       const action = id && id.length > 0 ? "edit" : "create";
