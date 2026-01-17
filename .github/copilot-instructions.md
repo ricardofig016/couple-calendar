@@ -9,41 +9,37 @@ This repository is a lightweight Expo (React Native) application designed to syn
   - **Mechanism**: All calendar interactions (create/edit/delete) are via `POST` to `EXPO_PUBLIC_SCRIPT_URL`.
   - **Listing**: Fetching via `GET` to the same URL returns a JSON array of `CalendarEvent`.
 - **Global State Management**:
-  - **EventContext**: Managed in [context/event-context.tsx](context/event-context.tsx). Always use the `useEvents()` hook to access the global event list and `refreshEvents()` function.
-  - **Refresh Pattern**: When performing mutations (e.g., in `useEventForm.ts` or `manage.tsx`), always call `refreshEvents(false)` after a successful backend response to keep the UI in sync without a full-screen loader.
-- **Navigation**: Complex business logic should be extracted into custom hooks (e.g., `useEventForm`). Use `useLocalSearchParams` for passing event data between screens (e.g., editing from `manage.tsx` to `index.tsx`).
+  - **EventContext**: Managed in [context/event-context.tsx](context/event-context.tsx). Access via `useEvents()` hook.
+  - **Refresh Pattern**: Always call `refreshEvents(false)` after mutations (e.g., in `use-event-form.ts` or `manage.tsx`) to keep the UI in sync without full-screen loaders.
+- **Form Logic**: Extracted in [hooks/use-event-form.ts](hooks/use-event-form.ts). It handles title resolution, date/time calculations, and "All Day" logic (adjusting hours to `00:00` - `23:59`).
 
 ## Preset System & Dynamic Logic
 
-The app uses a class-based preset system in [utils/preset.ts](utils/preset.ts) to handle template resolution.
+Located in [utils/preset.ts](utils/preset.ts).
 
-### Preset Classes & Placeholders
+### Preset Constants & Placeholders
 
-- `Preset`: Base class for templates. `resolve(description)` handles placeholders:
-  - `[A]` and `[B]`: Linked couple (one is Ricardo, the other is Carolina).
-  - `[KEY]`: Picks one of the two names randomly.
-  - `[KEY: option1, option2]`: Picks one selection and lists the others as "Better luck next time".
-- `resolveTitle(title, startTime)`: Overridable for time-based naming (e.g., changing "Dinner" to "Breakfast" based on `startTime`). See `DinnerPreset` for implementation.
+- `Preset.NAMES`: Static array `["Ricardo", "Carolina"]` used for name resolution.
+- `[A]` and `[B]`: Linked couple (one is `NAMES[0]`, other is `NAMES[1]`).
+- `[KEY]`: Randomly picks one of the names.
+- `[KEY: option1, option2]`: Selects one and lists others as "Better luck next time".
 
-### Rich Text Formatting
+### Specialized Presets
 
-Google Calendar descriptions support specific HTML tags: `<b>Bold</b>`, `<i>Italics</i>`, `<u>Underline</u>`, `<a href="...">Link</a>`, `\n`.
-**Strip them** with `.replace(/<[^>]*>?/gm, "")` when displaying in plain text UI components.
+- `DinnerPreset`:
+  - Overrides `resolveTitle` to change "Dinner" to "Breakfast"/"Lunch"/"Snack" based on time.
+  - Map `FOOD_EMOJIS` prepends icons (e.g., 🍕, 🍣) to "What to eat" if a matching keyword is found in descriptions.
 
 ## UI & Styling Conventions
 
-- Always use `ThemedText` and `ThemedView` from [components/](components/).
-- Fetch colors via `useThemeColor` hook and reference `Colors` and `Fonts` from [constants/theme.ts](constants/theme.ts). Use `Fonts.rounded`.
-- **Icons**: Use the [components/ui/icon-symbol.tsx](components/ui/icon-symbol.tsx) component. It maps iOS SF Symbols to Android Material Icons.
-
-## Date/Time Handling
-
-- Use `@react-native-community/datetimepicker` extracted into [components/date-time-picker-modals.tsx](components/date-time-picker-modals.tsx).
-- UI displays use `en-GB` locale: `date.toLocaleDateString("en-GB")`.
-- Payload must be ISO strings (`toISOString()`).
+- **Components**: Use `ThemedText` and `ThemedView` from [components/](components/).
+- **Theming**: Use `useThemeColor()` and `Fonts.rounded` from [constants/theme.ts](constants/theme.ts).
+- **Icons**: Use [components/ui/icon-symbol.tsx](components/ui/icon-symbol.tsx) (maps SF Symbols to Material Icons).
+- **Rich Text**: Google Calendar supports basic HTML (`<b>`, `<i>`, etc.). **Strip them** using `.replace(/<[^>]*>?/gm, "")` when displaying in plain text UI.
+- **Date Display**: Use the `getEventDateText(event)` helper in [app/(tabs)/manage.tsx](app/%28tabs%29/manage.tsx) for smart formatting of multi-day and all-day events.
 
 ## Key Workflows
 
 - **Dev**: `npx expo start`
-- **Build**: `npx eas build --platform android --profile preview` (requires `eas.json` env config).
-- **Backend Update**: Modify the Google Apps Script (see logic in `README.md`) and re-deploy as a new version. Ensure "Who has access" is set to "Anyone".
+- **Build**: `npx eas build --platform android --profile preview` (env vars in `eas.json`).
+- **Date Selection**: Uses `@react-native-community/datetimepicker` via [components/date-time-picker-modals.tsx](components/date-time-picker-modals.tsx). Display locale is `en-GB`.
