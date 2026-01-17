@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
@@ -21,6 +22,7 @@ interface CalendarEvent {
 }
 
 export default function ManageScreen() {
+  const router = useRouter();
   const iconColor = useThemeColor({}, "icon");
   const tintColor = useThemeColor({}, "tint");
   const borderColor = useThemeColor({ light: "#e0e0e0", dark: "#333" }, "icon");
@@ -63,9 +65,58 @@ export default function ManageScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+  const handleEdit = (event: CalendarEvent) => {
+    // Navigate to Add Event screen with params
+    router.push({
+      pathname: "/",
+      params: {
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        start: event.start,
+        end: event.end,
+      },
+    });
+  };
+
+  const handleDelete = async (eventId: string) => {
+    Alert.alert("Delete Event", "Are you sure you want to delete this event?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          if (!SCRIPT_URL) return;
+          setIsLoading(true);
+          try {
+            const response = await fetch(SCRIPT_URL, {
+              method: "POST",
+              body: JSON.stringify({
+                action: "delete",
+                id: eventId,
+              }),
+            });
+            if (response.ok) {
+              Alert.alert("Success", "Event deleted");
+              fetchEvents();
+            } else {
+              throw new Error("Failed to delete event");
+            }
+          } catch (error) {
+            Alert.alert("Error", error instanceof Error ? error.message : "Something went wrong");
+          } finally {
+            setIsLoading(false);
+          }
+        },
+      },
+    ]);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents(false); // Don't show full screen loader when returning
+    }, [fetchEvents]),
+  );
 
   const onRefresh = () => {
     setIsRefreshing(true);
@@ -134,6 +185,14 @@ export default function ManageScreen() {
                       </ThemedText>
                     ) : null}
                   </ThemedView>
+                  <View style={styles.eventActions}>
+                    <TouchableOpacity style={styles.actionButton} onPress={() => handleEdit(event)} disabled={isLoading}>
+                      <IconSymbol name="pencil" size={20} color={iconColor} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(event.id)} disabled={isLoading}>
+                      <IconSymbol name="trash" size={20} color="#ff4444" />
+                    </TouchableOpacity>
+                  </View>
                 </ThemedView>
               ))
             )}
@@ -188,9 +247,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   eventInfo: {
     gap: 2,
+    flex: 1,
+  },
+  eventActions: {
+    flexDirection: "row",
+    gap: 12,
+    marginLeft: 12,
+  },
+  actionButton: {
+    padding: 8,
   },
   eventDate: {
     fontSize: 14,

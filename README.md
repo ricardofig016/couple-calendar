@@ -52,13 +52,33 @@ A lightweight Expo (React Native) application designed to seamlessly sync events
 
    function doPost(e) {
      var data = JSON.parse(e.postData.contents);
-     var calendar = CalendarApp.getCalendarById("<YOUR_CALENDAR_ID>@group.calendar.google.com");
+     var calendarId = "<YOUR_CALENDAR_ID>@group.calendar.google.com";
+     var calendar = CalendarApp.getCalendarById(calendarId);
 
+     // Handle Deletion
+     if (data.action === "delete") {
+       var event = calendar.getEventById(data.id);
+       if (event) event.deleteEvent();
+       return ContentService.createTextOutput("Deleted");
+     }
+
+     // Handle Editing
+     if (data.action === "edit") {
+       var event = calendar.getEventById(data.id);
+       if (event) {
+         event.setTitle(data.title);
+         event.setDescription(data.description);
+         event.setTime(new Date(data.start), new Date(data.end));
+         return ContentService.createTextOutput("Updated");
+       }
+     }
+
+     // Handle Creation (Default)
      calendar.createEvent(data.title, new Date(data.start), new Date(data.end), {
        description: data.description,
      });
 
-     return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.JSON);
+     return ContentService.createTextOutput("Success");
    }
    ```
 

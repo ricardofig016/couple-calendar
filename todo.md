@@ -4,10 +4,11 @@
 - [ ] **Shared Checklist Integration**: For "Shopping" or "Trip" presets, add a bulleted list to the description that you can both see/edit in the calendar.
 - [ ] **Relationship Milestone Countdowns**: A small section in the app showing days until next big event or anniversary.
 - [ ] **Mood Picker**: When creating an event, select a "Vibe" (Chill, Romantic, Productive) to change the event color or description style.
-- [ ] feat: while the event being added, show a loading spinner to indicate the process is ongoing.
-- [ ] feat: add a button to clear everything to default state.
 - [ ] feat: add an icon to the app (the image from the discord server).
 
+- [x] feat: add a button to clear everything to default state.
+- [x] feat: while the event being added, show a loading spinner to indicate the process is ongoing.
+- [x] feat: add options to the event card: edit and delete
 - [x] feat: manage tab should have a list of the events from the last 2 days the upcomming events in the next 3 months
 - [x] feat: susbstitute unused explore tab with a new tab to manage events.
 - [x] fix: vertical spacing between start/end time and their inputs (while spans multiple days in not chekced) is smaller than the other vertical spacings between date and time labels and their inputs

@@ -1,6 +1,7 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Checkbox } from "expo-checkbox";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -13,10 +14,20 @@ import { Preset, PRESETS } from "@/utils/preset";
 const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams<{
+    id?: string;
+    title?: string;
+    description?: string;
+    start?: string;
+    end?: string;
+  }>();
+
   const color = useThemeColor({}, "text");
   const backgroundColor = useThemeColor({}, "background");
   const iconColor = useThemeColor({}, "icon");
 
+  const [id, setId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isMultiDay, setIsMultiDay] = useState(false);
@@ -53,6 +64,32 @@ export default function HomeScreen() {
     d.setHours(12, 0, 0, 0);
     return d;
   });
+
+  useEffect(() => {
+    if (params.id && params.id !== id) {
+      setId(params.id);
+      setTitle(params.title || "");
+      setDescription(params.description || "");
+
+      if (params.start && params.end) {
+        const start = new Date(params.start);
+        const end = new Date(params.end);
+
+        // Check if multi-day (different dates)
+        const isMulti = start.toDateString() !== end.toDateString();
+        setIsMultiDay(isMulti);
+
+        if (isMulti) {
+          setMultiStartDate(start);
+          setMultiEndDate(end);
+        } else {
+          setDate(start);
+          setStartTime(start);
+          setEndTime(end);
+        }
+      }
+    }
+  }, [params.id, params.title, params.description, params.start, params.end, id]);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
@@ -108,6 +145,8 @@ export default function HomeScreen() {
       const response = await fetch(SCRIPT_URL, {
         method: "POST",
         body: JSON.stringify({
+          action: id ? "edit" : "create",
+          id: id,
           title: finalTitle,
           description: finalDescription,
           start: startIso,
@@ -116,16 +155,41 @@ export default function HomeScreen() {
       });
 
       if (response.ok) {
-        Alert.alert("Success", "Event added to calendar!");
-        setTitle("");
-        setDescription("");
+        Alert.alert("Success", id ? "Event updated!" : "Event added to calendar!");
+        clearForm();
+        if (id) {
+          router.push("/manage");
+        }
       } else {
-        throw new Error("Failed to add event");
+        throw new Error("Failed to save event");
       }
     } catch (error) {
-      Alert.alert("Error", "Something went wrong. Check your Script URL: " + (error instanceof Error ? error.message : String(error)));
+      Alert.alert("Error", "Something went wrong: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const clearForm = () => {
+    setId(null);
+    setTitle("");
+    setDescription("");
+    setIsMultiDay(false);
+    setSelectedPreset(null);
+    // Reset dates to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setDate(tomorrow);
+    const start = new Date();
+    start.setHours(12, 0, 0, 0);
+    setStartTime(start);
+    const end = new Date();
+    end.setHours(13, 0, 0, 0);
+    setEndTime(end);
+
+    // Also clear the URL params to prevent useEffect from re-filling it
+    if (params.id) {
+      router.setParams({ id: "", title: "", description: "", start: "", end: "" });
     }
   };
 
@@ -133,8 +197,13 @@ export default function HomeScreen() {
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
         <ScrollView contentContainerStyle={styles.container}>
-          <ThemedView style={styles.titleContainer}>
-            <ThemedText type="title">Add Event</ThemedText>
+          <ThemedView style={styles.header}>
+            <ThemedView style={styles.titleContainer}>
+              <ThemedText type="title">{id ? "Edit Event" : "Add Event"}</ThemedText>
+            </ThemedView>
+            <TouchableOpacity onPress={clearForm} disabled={isLoading}>
+              <ThemedText style={{ color: "#ff4444" }}>Clear</ThemedText>
+            </TouchableOpacity>
           </ThemedView>
 
           <ThemedView style={styles.form}>
@@ -226,7 +295,7 @@ export default function HomeScreen() {
 
             <View style={{ marginTop: 20 }}>
               <TouchableOpacity style={[styles.submitButton, { backgroundColor: "#0a7ea4" }, isLoading && { opacity: 0.7 }]} onPress={handleSubmit} disabled={isLoading} activeOpacity={0.8}>
-                {isLoading ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.submitButtonText}>Schedule Event</ThemedText>}
+                {isLoading ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.submitButtonText}>{id ? "Update Event" : "Schedule Event"}</ThemedText>}
               </TouchableOpacity>
             </View>
           </ThemedView>
@@ -344,6 +413,11 @@ const styles = StyleSheet.create({
   container: {
     padding: 32,
     gap: 16,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   titleContainer: {
     flexDirection: "row",
