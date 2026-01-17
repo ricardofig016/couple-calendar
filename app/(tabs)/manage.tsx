@@ -156,7 +156,7 @@ export default function ManageScreen() {
                 Manage
               </ThemedText>
             </ThemedView>
-            <TouchableOpacity onPress={() => fetchEvents()} disabled={isLoading}>
+            <TouchableOpacity onPress={() => fetchEvents(false)} disabled={isLoading}>
               <IconSymbol name="arrow.clockwise" size={24} color={iconColor} />
             </TouchableOpacity>
           </ThemedView>
@@ -167,9 +167,7 @@ export default function ManageScreen() {
             <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
               Recent & Upcoming Events
             </ThemedText>
-            {isLoading && !isRefreshing ? (
-              <ActivityIndicator size="large" color={tintColor} style={{ marginTop: 20 }} />
-            ) : events.length === 0 ? (
+            {events.length === 0 && !isLoading ? (
               <ThemedText style={styles.emptyText}>No events found in the selected range.</ThemedText>
             ) : (
               events.map((event, index) => (
