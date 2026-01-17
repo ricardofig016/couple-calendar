@@ -1,5 +1,5 @@
-import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useRouter } from "expo-router";
+import { useState } from "react";
 import { Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -8,18 +8,11 @@ import { ThemedView } from "@/components/themed-view";
 import { Collapsible } from "@/components/ui/collapsible";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Fonts } from "@/constants/theme";
+import { CalendarEvent, useEvents } from "@/context/event-context";
 import { useThemeColor } from "@/hooks/use-theme-color";
 
 // Using environment variable for security
 const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
-
-interface CalendarEvent {
-  id: string;
-  title: string;
-  description: string;
-  start: string;
-  end: string;
-}
 
 export default function ManageScreen() {
   const router = useRouter();
@@ -27,7 +20,7 @@ export default function ManageScreen() {
   const tintColor = useThemeColor({}, "tint");
   const borderColor = useThemeColor({ light: "#e0e0e0", dark: "#333" }, "icon");
 
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const { events, isLoading: isGlobalLoading, refreshEvents } = useEvents();
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
@@ -39,40 +32,6 @@ export default function ManageScreen() {
       [id]: !prev[id],
     }));
   };
-
-  const fetchEvents = useCallback(async (showLoading = true) => {
-    if (!SCRIPT_URL) {
-      Alert.alert("Error", "Script URL is not configured");
-      return;
-    }
-
-    if (showLoading) setIsLoading(true);
-
-    try {
-      const response = await fetch(SCRIPT_URL);
-      const text = await response.text();
-
-      if (response.ok) {
-        try {
-          const data = JSON.parse(text);
-          setEvents(data);
-        } catch (e) {
-          console.error("Failed to parse JSON:", text.substring(0, 100));
-          throw new Error("Backend returned HTML instead of JSON. Ensure your Google Apps Script is deployed correctly with a doGet function and 'Who has access: Anyone'.");
-        }
-      } else {
-        throw new Error("Failed to fetch events: " + response.status);
-      }
-    } catch (error) {
-      console.error(error);
-      if (showLoading) {
-        Alert.alert("Error", "Could not load events. Make sure your Google Apps Script is updated with a doGet function.");
-      }
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, []);
 
   const handleEdit = (event: CalendarEvent) => {
     // Navigate to Add Event screen with params
@@ -106,7 +65,7 @@ export default function ManageScreen() {
               }),
             });
             if (response.ok) {
-              fetchEvents();
+              refreshEvents();
             } else {
               throw new Error("Failed to delete event");
             }
@@ -120,15 +79,10 @@ export default function ManageScreen() {
     ]);
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchEvents(false); // Don't show full screen loader when returning
-    }, [fetchEvents]),
-  );
-
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setIsRefreshing(true);
-    fetchEvents(false);
+    await refreshEvents(false);
+    setIsRefreshing(false);
   };
 
   const formatDate = (dateStr: string) => {
@@ -174,7 +128,7 @@ export default function ManageScreen() {
                 Manage
               </ThemedText>
             </ThemedView>
-            <TouchableOpacity onPress={() => fetchEvents(false)} disabled={isLoading}>
+            <TouchableOpacity onPress={() => refreshEvents(false)} disabled={isGlobalLoading || isLoading}>
               <IconSymbol name="arrow.clockwise" size={24} color={iconColor} />
             </TouchableOpacity>
           </ThemedView>
@@ -183,7 +137,7 @@ export default function ManageScreen() {
             <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
               Recent & Upcoming Events
             </ThemedText>
-            {events.length === 0 && !isLoading ? (
+            {events.length === 0 && !isGlobalLoading && !isLoading ? (
               <ThemedText style={styles.emptyText}>No events found in the selected range.</ThemedText>
             ) : (
               events.map((event, index) => {

@@ -2,11 +2,13 @@ import { Preset } from "@/utils/preset";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-native";
+import { useEvents } from "@/context/event-context";
 
 const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
 
 export function useEventForm() {
   const router = useRouter();
+  const { refreshEvents } = useEvents();
   const params = useLocalSearchParams<{
     id?: string;
     title?: string;
@@ -152,6 +154,7 @@ export function useEventForm() {
 
       if (response.ok) {
         clearForm();
+        refreshEvents(false);
         if (id) {
           router.push("/manage");
         }
