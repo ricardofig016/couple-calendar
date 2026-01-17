@@ -23,6 +23,8 @@ const MAPPING = {
   "arrow.clockwise": "refresh",
   pencil: "edit",
   trash: "delete",
+  "chevron.down": "keyboard-arrow-down",
+  "chevron.up": "keyboard-arrow-up",
 } as IconMapping;
 
 /**

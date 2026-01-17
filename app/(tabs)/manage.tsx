@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
@@ -30,6 +30,14 @@ export default function ManageScreen() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
+
+  const toggleExpand = (id: string) => {
+    setExpandedEvents((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   const fetchEvents = useCallback(async (showLoading = true) => {
     if (!SCRIPT_URL) {
@@ -170,29 +178,41 @@ export default function ManageScreen() {
             {events.length === 0 && !isLoading ? (
               <ThemedText style={styles.emptyText}>No events found in the selected range.</ThemedText>
             ) : (
-              events.map((event, index) => (
-                <ThemedView key={event.id || index} style={[styles.eventCard, { borderColor }]}>
-                  <ThemedView style={styles.eventInfo}>
-                    <ThemedText type="defaultSemiBold">{event.title}</ThemedText>
-                    <ThemedText style={[styles.eventDate, { color: iconColor }]}>
-                      {formatDate(event.start)} • {formatTime(event.start)} - {formatTime(event.end)}
-                    </ThemedText>
-                    {event.description ? (
-                      <ThemedText numberOfLines={2} style={[styles.eventDescription, { color: iconColor }]}>
-                        {event.description.replace(/<[^>]*>?/gm, "")}
+              events.map((event, index) => {
+                const eventKey = event.id || `index-${index}`;
+                const isExpanded = expandedEvents[eventKey];
+
+                return (
+                  <ThemedView key={eventKey} style={[styles.eventCard, { borderColor, alignItems: "flex-start" }]}>
+                    <ThemedView style={styles.eventInfo}>
+                      <ThemedText type="defaultSemiBold">{event.title}</ThemedText>
+                      <ThemedText style={[styles.eventDate, { color: iconColor }]}>
+                        {formatDate(event.start)} • {formatTime(event.start)} - {formatTime(event.end)}
                       </ThemedText>
-                    ) : null}
+                      {event.description ? (
+                        <View style={{ marginTop: 4 }}>
+                          <ThemedText numberOfLines={isExpanded ? undefined : 2} style={[styles.eventDescription, { color: iconColor }]}>
+                            {event.description.replace(/<[^>]*>?/gm, "")}
+                          </ThemedText>
+                        </View>
+                      ) : null}
+                    </ThemedView>
+                    <View style={styles.eventActions}>
+                      <TouchableOpacity style={styles.actionButton} onPress={() => handleEdit(event)} disabled={isLoading}>
+                        <IconSymbol name="pencil" size={20} color={iconColor} />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(event.id)} disabled={isLoading}>
+                        <IconSymbol name="trash" size={20} color={iconColor} />
+                      </TouchableOpacity>
+                      {event.description ? (
+                        <TouchableOpacity style={styles.actionButton} onPress={() => toggleExpand(eventKey)}>
+                          <IconSymbol name={isExpanded ? "chevron.up" : "chevron.down"} size={20} color={iconColor} />
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
                   </ThemedView>
-                  <View style={styles.eventActions}>
-                    <TouchableOpacity style={styles.actionButton} onPress={() => handleEdit(event)} disabled={isLoading}>
-                      <IconSymbol name="pencil" size={20} color={iconColor} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(event.id)} disabled={isLoading}>
-                      <IconSymbol name="trash" size={20} color="#ff4444" />
-                    </TouchableOpacity>
-                  </View>
-                </ThemedView>
-              ))
+                );
+              })
             )}
           </ThemedView>
 
@@ -254,12 +274,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eventActions: {
-    flexDirection: "row",
-    gap: 12,
+    flexDirection: "column",
+    gap: 4,
     marginLeft: 12,
   },
   actionButton: {
-    padding: 8,
+    padding: 4,
   },
   eventDate: {
     fontSize: 14,
