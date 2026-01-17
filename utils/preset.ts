@@ -1,4 +1,6 @@
 export class Preset {
+  public static readonly NAMES = ["Ricardo", "Carolina"];
+
   constructor(
     public readonly label: string,
     public readonly title: string,
@@ -39,18 +41,16 @@ export class Preset {
     let resolved = currentDescription;
 
     // Resolve linked couple placeholders [A] and [B]
-    const personA = Math.random() > 0.5 ? "Ricardo" : "Carolina";
-    const personB = personA === "Ricardo" ? "Carolina" : "Ricardo";
+    const personA = Math.random() > 0.5 ? Preset.NAMES[0] : Preset.NAMES[1];
+    const personB = personA === Preset.NAMES[0] ? Preset.NAMES[1] : Preset.NAMES[0];
     resolved = resolved.replace(/\[A\]/gi, `<b>${personA}</b>`);
     resolved = resolved.replace(/\[B\]/gi, `<b>${personB}</b>`);
 
     // Resolve person placeholders [KEY]
     for (const key of this.personKeys) {
       const regex = new RegExp(`\\[${key}\\]`, "gi");
-      resolved = resolved.replace(regex, () => {
-        const person = Math.random() > 0.5 ? "Ricardo" : "Carolina";
-        return `<b>${person}</b>`;
-      });
+      const person = Math.random() > 0.5 ? Preset.NAMES[0] : Preset.NAMES[1];
+      resolved = resolved.replace(regex, `<b>${person}</b>`);
     }
 
     // Resolve choice placeholders [KEY: item1, item2, ...]
@@ -156,10 +156,10 @@ export class DinnerPreset extends Preset {
 
 export const PRESETS: Preset[] = [
   new DinnerPreset(),
-  new Preset("🍿 Movie", "🍿 Movie Night", "We'll watch: [MOVIES: Movie 1, Movie 2, ...]\nLocation: ", ["MOVIES"]),
-  new Preset("🛒 Shopping", "🛒 Shopping", "[A] is paying today! 💸\nThat means [B] is on cart duty! 🛒💨", [], []),
-  new Preset("😴 Sleepover", "😴 Sleepover", "Where we staying: [LOCATION]'s\nDon't forget the snacks! 🍪", [], ["LOCATION"]),
-  new Preset("🎂 Birthday", "🎂 [PERSON]'s Birthday", "Happy birthday [PERSON: value]!\n🎁 Gift: \nLocation: ", [], [], ["PERSON"]),
-  new Preset("🎉 Party", "🎉 Party", "Get ready to celebrate!\nDon't forget to bring your dancing shoes! 🕺💃\nLocation: "),
-  new Preset("🏋️ Gym", "🏋️ Gym Session", "Gains. Gains! GAINS!! 💪✨\nDon't forget to stay hydrated! 💧"),
+  new Preset("🍿 Movie", "🍿 Movie Night", "🎬 We'll watch: [MOVIES: movie1, movie2]\n📍 Location: ", ["MOVIES"]),
+  new Preset("🛒 Shopping", "🛒 Shopping", "💸 [A] is paying today!\n🛒💨 That means [B] is on cart duty!", [], []),
+  new Preset("😴 Sleepover", "😴 Sleepover", "📍 Location: [PERSON]'s\n🍪 Don't forget the snacks!", [], ["PERSON"]),
+  new Preset("🎂 Birthday", "🎂 [PERSON]'s Birthday", "🎉 Happy birthday [PERSON: value]!\n🎁 Gift: \n📍 Location: ", [], [], ["PERSON"]),
+  new Preset("🎉 Party", "🎉 Party Time", "💃 Get ready to celebrate!\n🥴🍾 Don't drink TOOO much!\n📍 Location: "),
+  new Preset("🏋️ Gym", "🏋️ Gym Session", "💪✨ Gains. Gains! GAINS!!\n💧 Don't forget to stay hydrated!"),
 ];
