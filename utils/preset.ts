@@ -4,7 +4,7 @@ export class Preset {
     public readonly title: string,
     public readonly description: string,
     private readonly choiceKeys: string[] = [],
-    private readonly personKeys: string[] = []
+    private readonly personKeys: string[] = [],
   ) {}
 
   /**
@@ -68,7 +68,7 @@ export class Preset {
 
 export class DinnerPreset extends Preset {
   constructor() {
-    super("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\n\n[PAYER] is treating tonight! 💸", ["FOOD"], ["PAYER"]);
+    super("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\n[PAYER] is treating tonight! 💸", ["FOOD"], ["PAYER"]);
   }
 
   override resolveTitle(currentTitle: string, startTime: Date): string {
@@ -93,8 +93,8 @@ export class DinnerPreset extends Preset {
 
 export const PRESETS: Preset[] = [
   new DinnerPreset(),
-  new Preset("🍿 Movie", "🍿 Movie Night", "We'll watch: [MOVIES: Movie 1, Movie 2, ...]", ["MOVIES"]),
-  new Preset("🛒 Shopping", "🛒 Shopping", "[A] is paying today! 💸\n\nThat means [B] is on cart duty! 🛒💨", [], []),
-  new Preset("😴 Sleepover", "😴 Sleepover", "Where we staying: [LOCATION]'s\n\nDon't forget the snacks! 🍪", [], ["LOCATION"]),
-  new Preset("🏋️ Gym", "🏋️ Gym Session", "Gains. Gains! GAINS!! 💪✨\n\nDon't forget to stay hydrated! 💧"),
+  new Preset("🍿 Movie", "🍿 Movie Night", "We'll watch: [MOVIES: Movie 1, Movie 2, ...]\nLocation: ", ["MOVIES"]),
+  new Preset("🛒 Shopping", "🛒 Shopping", "[A] is paying today! 💸\nThat means [B] is on cart duty! 🛒💨", [], []),
+  new Preset("😴 Sleepover", "😴 Sleepover", "Where we staying: [LOCATION]'s\nDon't forget the snacks! 🍪", [], ["LOCATION"]),
+  new Preset("🏋️ Gym", "🏋️ Gym Session", "Gains. Gains! GAINS!! 💪✨\nDon't forget to stay hydrated! 💧"),
 ];
