@@ -68,7 +68,7 @@ export class Preset {
 
 export class DinnerPreset extends Preset {
   constructor() {
-    super("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\n[PAYER] is treating tonight! 💸", ["FOOD"], ["PAYER"]);
+    super("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\nLocation: \n[PAYER] is treating tonight! 💸", ["FOOD"], ["PAYER"]);
   }
 
   override resolveTitle(currentTitle: string, startTime: Date): string {
