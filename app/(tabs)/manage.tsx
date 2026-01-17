@@ -31,6 +31,7 @@ export default function ManageScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
+  const [canExpand, setCanExpand] = useState<Record<string, boolean>>({});
 
   const toggleExpand = (id: string) => {
     setExpandedEvents((prev) => ({
@@ -190,6 +191,17 @@ export default function ManageScreen() {
                       </ThemedText>
                       {event.description ? (
                         <View style={{ marginTop: 4 }}>
+                          {/* Hidden measurer to detect if description should have an expand button */}
+                          <ThemedText
+                            style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
+                            onTextLayout={(e) => {
+                              if (e.nativeEvent.lines.length > 2 && !canExpand[eventKey]) {
+                                setCanExpand((prev) => ({ ...prev, [eventKey]: true }));
+                              }
+                            }}
+                          >
+                            {event.description.replace(/<[^>]*>?/gm, "")}
+                          </ThemedText>
                           <ThemedText numberOfLines={isExpanded ? undefined : 2} style={[styles.eventDescription, { color: iconColor }]}>
                             {event.description.replace(/<[^>]*>?/gm, "")}
                           </ThemedText>
@@ -203,7 +215,7 @@ export default function ManageScreen() {
                       <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(event.id)} disabled={isLoading}>
                         <IconSymbol name="trash" size={20} color={iconColor} />
                       </TouchableOpacity>
-                      {event.description ? (
+                      {canExpand[eventKey] ? (
                         <TouchableOpacity style={styles.actionButton} onPress={() => toggleExpand(eventKey)}>
                           <IconSymbol name={isExpanded ? "chevron.up" : "chevron.down"} size={20} color={iconColor} />
                         </TouchableOpacity>
