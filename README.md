@@ -112,13 +112,7 @@ This app works best as a standalone APK since it uses a custom scheme.
 ### Steps
 
 1. Install EAS CLI: `npm install -g eas-cli`
-2. Run the build:
-
-   ```bash
-   npx eas build --platform android --profile preview
-   ```
-
-3. Add `EXPO_PUBLIC_SCRIPT_URL` to your `eas.json` under the relevant profile:
+2. Add `EXPO_PUBLIC_SCRIPT_URL` to your `eas.json` under the relevant profile:
 
    ```json
    {
@@ -131,6 +125,12 @@ This app works best as a standalone APK since it uses a custom scheme.
        }
      }
    }
+   ```
+
+3. Run the build:
+
+   ```bash
+   npx eas build --platform android --profile preview
    ```
 
 4. Download the generated APK and install it on your Android device.
