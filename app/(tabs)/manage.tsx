@@ -113,6 +113,28 @@ export default function ManageScreen() {
     return "upcoming";
   };
 
+  const getEventDateText = (event: CalendarEvent) => {
+    const start = new Date(event.start);
+    const end = new Date(event.end);
+    const isMultiDay = start.toDateString() !== end.toDateString();
+
+    const isAllDay =
+      start.getHours() === 0 && start.getMinutes() === 0 && (end.getHours() === 23 && end.getMinutes() === 59 || end.getHours() === 0 && end.getMinutes() === 0 && isMultiDay);
+
+    const dateA = formatDate(event.start);
+    const timeA = formatTime(event.start);
+    const dateB = formatDate(event.end);
+    const timeB = formatTime(event.end);
+
+    if (!isMultiDay) {
+      if (isAllDay) return `${dateA} • All day`;
+      return `${dateA} • ${timeA} - ${timeB}`;
+    }
+
+    if (isAllDay) return `${dateA} - ${dateB}`;
+    return `${dateA}, ${timeA} - ${dateB}, ${timeB}`;
+  };
+
   return (
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
@@ -167,7 +189,7 @@ export default function ManageScreen() {
                         )}
                       </View>
                       <ThemedText style={[styles.eventDate, { color: iconColor }]}>
-                        {formatDate(event.start)} • {formatTime(event.start)} - {formatTime(event.end)}
+                        {getEventDateText(event)}
                       </ThemedText>
                       {event.description ? (
                         <View style={{ marginTop: 4 }}>

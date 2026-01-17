@@ -21,7 +21,7 @@ export function useEventForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isMultiDay, setIsMultiDay] = useState(false);
-  const [isAllDay, setIsAllDay] = useState(false);
+  const [isAllDay, setIsAllDay] = useState(true);
   const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -64,7 +64,13 @@ export function useEventForm() {
         const start = new Date(params.start);
         const end = new Date(params.end);
         const isMulti = start.toDateString() !== end.toDateString();
+        
+        const allDayDetected = 
+          start.getHours() === 0 && start.getMinutes() === 0 && 
+          (end.getHours() === 23 && end.getMinutes() === 59 || (end.getHours() === 0 && end.getMinutes() === 0 && isMulti));
+        
         setIsMultiDay(isMulti);
+        setIsAllDay(allDayDetected);
 
         if (isMulti) {
           setMultiStartDate(start);
@@ -83,7 +89,7 @@ export function useEventForm() {
     setTitle("");
     setDescription("");
     setIsMultiDay(false);
-    setIsAllDay(false);
+    setIsAllDay(true);
     setSelectedPreset(null);
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
