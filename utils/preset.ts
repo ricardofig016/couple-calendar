@@ -70,7 +70,7 @@ export class Preset {
         let resultText = `<b>${selected}</b>`;
         if (others.length > 0) {
           const othersList = others.length > 1 ? `${others.slice(0, -1).join(", ")} and ${others[others.length - 1]}` : others[0];
-          resultText += `\nBetter luck next time for ${othersList}. 🥈`;
+          resultText += `\nBetter luck next time for ${othersList}.`;
         }
         return resultText;
       });
@@ -89,8 +89,48 @@ export class Preset {
 }
 
 export class DinnerPreset extends Preset {
+  private static readonly FOOD_EMOJIS: Record<string, string> = {
+    pizza: "🍕",
+    sushi: "🍣",
+    japanese: "🍣",
+    ramen: "🍜",
+    burgers: "🍔",
+    burger: "🍔",
+    kebab: "🥙",
+    pasta: "🍝",
+    italian: "🍝",
+    tacos: "🌮",
+    mexican: "🌮",
+    steak: "🥩",
+    fish: "🐟",
+    chicken: "🍗",
+    salad: "🥗",
+    thai: "🍲",
+    chinese: "🥡",
+    indian: "🍛",
+    korean: "🥘",
+    pancakes: "🥞",
+    waffles: "🧇",
+  };
+
   constructor() {
-    super("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\nLocation: \n[PAYER] is treating tonight! 💸", ["FOOD"], ["PAYER"]);
+    super("🍴 Dinner", "🍴 Dinner Date", "What to eat: [FOOD: Sushi, Pizza, Burgers]\n📍 Location: \n💸 [PAYER] is treating tonight!", ["FOOD"], ["PAYER"]);
+  }
+
+  override resolve(currentDescription: string): string {
+    let resolved = super.resolve(currentDescription);
+
+    // If "What to eat: <b>Selected</b>" is present, prepends emoji if matched
+    const foodMatch = resolved.match(/What to eat: <b>(.*?)<\/b>/i);
+    if (foodMatch) {
+      const food = foodMatch[1].trim().toLowerCase();
+      const emoji = DinnerPreset.FOOD_EMOJIS[food];
+      if (emoji) {
+        resolved = resolved.replace(/What to eat:/i, `${emoji} What to eat:`);
+      }
+    }
+
+    return resolved;
   }
 
   override resolveTitle(currentTitle: string, startTime: Date, currentDescription: string): string {
