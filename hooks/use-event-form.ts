@@ -21,6 +21,7 @@ export function useEventForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isMultiDay, setIsMultiDay] = useState(false);
+  const [isAllDay, setIsAllDay] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -82,6 +83,7 @@ export function useEventForm() {
     setTitle("");
     setDescription("");
     setIsMultiDay(false);
+    setIsAllDay(false);
     setSelectedPreset(null);
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -121,15 +123,30 @@ export function useEventForm() {
     let eventStartDate: Date;
 
     if (isMultiDay) {
-      eventStartDate = multiStartDate;
-      startIso = multiStartDate.toISOString();
-      endIso = multiEndDate.toISOString();
+      if (isAllDay) {
+        const start = new Date(multiStartDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(multiEndDate);
+        end.setHours(23, 59, 59, 999);
+        eventStartDate = start;
+        startIso = start.toISOString();
+        endIso = end.toISOString();
+      } else {
+        eventStartDate = multiStartDate;
+        startIso = multiStartDate.toISOString();
+        endIso = multiEndDate.toISOString();
+      }
     } else {
       const start = new Date(date);
-      start.setHours(startTime.getHours(), startTime.getMinutes());
-      eventStartDate = start;
       const end = new Date(date);
-      end.setHours(endTime.getHours(), endTime.getMinutes());
+      if (isAllDay) {
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+      } else {
+        start.setHours(startTime.getHours(), startTime.getMinutes());
+        end.setHours(endTime.getHours(), endTime.getMinutes());
+      }
+      eventStartDate = start;
       startIso = start.toISOString();
       endIso = end.toISOString();
     }
@@ -176,6 +193,8 @@ export function useEventForm() {
     setDescription,
     isMultiDay,
     setIsMultiDay,
+    isAllDay,
+    setIsAllDay,
     isLoading,
     date,
     setDate,

@@ -20,6 +20,8 @@ export default function HomeScreen() {
     setDescription,
     isMultiDay,
     setIsMultiDay,
+    isAllDay,
+    setIsAllDay,
     isLoading,
     date,
     setDate,
@@ -88,59 +90,78 @@ export default function HomeScreen() {
               editable={!isLoading}
             />
 
-            <TouchableOpacity style={styles.checkboxContainer} onPress={() => setIsMultiDay(!isMultiDay)} activeOpacity={0.8} disabled={isLoading}>
-              <Checkbox value={isMultiDay} onValueChange={setIsMultiDay} color={isMultiDay ? "#0a7ea4" : undefined} disabled={isLoading} />
-              <ThemedText type="defaultSemiBold" style={styles.checkboxLabel}>
-                multiple days
-              </ThemedText>
-            </TouchableOpacity>
+            <View style={styles.row}>
+              <TouchableOpacity style={styles.checkboxContainer} onPress={() => setIsMultiDay(!isMultiDay)} activeOpacity={0.8} disabled={isLoading}>
+                <Checkbox value={isMultiDay} onValueChange={setIsMultiDay} color={isMultiDay ? "#0a7ea4" : undefined} disabled={isLoading} />
+                <ThemedText type="defaultSemiBold" style={styles.checkboxLabel}>
+                  multiple days
+                </ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.checkboxContainer} onPress={() => setIsAllDay(!isAllDay)} activeOpacity={0.8} disabled={isLoading}>
+                <Checkbox value={isAllDay} onValueChange={setIsAllDay} color={isAllDay ? "#0a7ea4" : undefined} disabled={isLoading} />
+                <ThemedText type="defaultSemiBold" style={styles.checkboxLabel}>
+                  all day
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
 
             {!isMultiDay ? (
               <>
                 <DateTimePickerButton label="Date" value={date.toLocaleDateString("en-GB")} onPress={() => setShowDatePicker(true)} disabled={isLoading} />
 
-                <View style={styles.row}>
-                  <DateTimePickerButton
-                    style={{ flex: 1 }}
-                    label="Start"
-                    value={startTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}
-                    onPress={() => setShowStartTimePicker(true)}
-                    disabled={isLoading}
-                  />
-                  <View style={{ width: 20 }} />
-                  <DateTimePickerButton
-                    style={{ flex: 1 }}
-                    label="End"
-                    value={endTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}
-                    onPress={() => setShowEndTimePicker(true)}
-                    disabled={isLoading}
-                  />
-                </View>
+                {!isAllDay && (
+                  <View style={styles.row}>
+                    <DateTimePickerButton
+                      style={{ flex: 1 }}
+                      label="Start"
+                      value={startTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                      onPress={() => setShowStartTimePicker(true)}
+                      disabled={isLoading}
+                    />
+                    <View style={{ width: 20 }} />
+                    <DateTimePickerButton
+                      style={{ flex: 1 }}
+                      label="End"
+                      value={endTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                      onPress={() => setShowEndTimePicker(true)}
+                      disabled={isLoading}
+                    />
+                  </View>
+                )}
               </>
             ) : (
               <>
                 <ThemedText type="defaultSemiBold">Start</ThemedText>
                 <View style={styles.row}>
                   <DateTimePickerButton style={{ flex: 1.5 }} value={multiStartDate.toLocaleDateString("en-GB")} onPress={() => setShowMultiStartDatePicker(true)} disabled={isLoading} />
-                  <View style={{ width: 10 }} />
-                  <DateTimePickerButton
-                    style={{ flex: 1 }}
-                    value={multiStartDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}
-                    onPress={() => setShowMultiStartTimePicker(true)}
-                    disabled={isLoading}
-                  />
+                  {!isAllDay && (
+                    <>
+                      <View style={{ width: 10 }} />
+                      <DateTimePickerButton
+                        style={{ flex: 1 }}
+                        value={multiStartDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                        onPress={() => setShowMultiStartTimePicker(true)}
+                        disabled={isLoading}
+                      />
+                    </>
+                  )}
                 </View>
 
                 <ThemedText type="defaultSemiBold">End</ThemedText>
                 <View style={styles.row}>
                   <DateTimePickerButton style={{ flex: 1.5 }} value={multiEndDate.toLocaleDateString("en-GB")} onPress={() => setShowMultiEndDatePicker(true)} disabled={isLoading} />
-                  <View style={{ width: 10 }} />
-                  <DateTimePickerButton
-                    style={{ flex: 1 }}
-                    value={multiEndDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}
-                    onPress={() => setShowMultiEndTimePicker(true)}
-                    disabled={isLoading}
-                  />
+                  {!isAllDay && (
+                    <>
+                      <View style={{ width: 10 }} />
+                      <DateTimePickerButton
+                        style={{ flex: 1 }}
+                        value={multiEndDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                        onPress={() => setShowMultiEndTimePicker(true)}
+                        disabled={isLoading}
+                      />
+                    </>
+                  )}
                 </View>
               </>
             )}
