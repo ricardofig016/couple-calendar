@@ -149,6 +149,16 @@ export default function ManageScreen() {
     });
   };
 
+  const getEventState = (startStr: string, endStr: string) => {
+    const now = new Date();
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+
+    if (now > end) return "finished";
+    if (now >= start && now <= end) return "in-progress";
+    return "upcoming";
+  };
+
   return (
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
@@ -169,8 +179,6 @@ export default function ManageScreen() {
             </TouchableOpacity>
           </ThemedView>
 
-          <ThemedText>Customize your experience and manage your shared calendars.</ThemedText>
-
           <ThemedView style={styles.section}>
             <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
               Recent & Upcoming Events
@@ -181,11 +189,29 @@ export default function ManageScreen() {
               events.map((event, index) => {
                 const eventKey = event.id || `index-${index}`;
                 const isExpanded = expandedEvents[eventKey];
+                const state = getEventState(event.start, event.end);
 
                 return (
-                  <ThemedView key={eventKey} style={[styles.eventCard, { borderColor, alignItems: "flex-start" }]}>
+                  <ThemedView
+                    key={eventKey}
+                    style={[
+                      styles.eventCard,
+                      { borderColor, alignItems: "flex-start" },
+                      state === "finished" && { opacity: 0.4 },
+                      state === "in-progress" && { borderColor: "#4BB543", borderWidth: 2 },
+                    ]}
+                  >
                     <ThemedView style={styles.eventInfo}>
-                      <ThemedText type="defaultSemiBold">{event.title}</ThemedText>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                        <ThemedText type="defaultSemiBold" style={state === "finished" && { textDecorationLine: "line-through" }}>
+                          {event.title}
+                        </ThemedText>
+                        {state === "in-progress" && (
+                          <View style={{ backgroundColor: "#4BB543", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                            <ThemedText style={{ color: "white", fontSize: 10, fontWeight: "bold" }}>LIVE</ThemedText>
+                          </View>
+                        )}
+                      </View>
                       <ThemedText style={[styles.eventDate, { color: iconColor }]}>
                         {formatDate(event.start)} • {formatTime(event.start)} - {formatTime(event.end)}
                       </ThemedText>
