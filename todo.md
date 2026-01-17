@@ -6,8 +6,9 @@
 - [ ] **Mood Picker**: When creating an event, select a "Vibe" (Chill, Romantic, Productive) to change the event color or description style.
 - [ ] feat: while the event being added, show a loading spinner to indicate the process is ongoing.
 - [ ] feat: add a button to clear everything to default state.
-- [ ] feat: susbstitute unused explore tab with a new tab to manage events.
+- [ ] feat: add an icon to the app (the image from the discord server).
 
+- [x] feat: susbstitute unused explore tab with a new tab to manage events.
 - [x] fix: vertical spacing between start/end time and their inputs (while spans multiple days in not chekced) is smaller than the other vertical spacings between date and time labels and their inputs
 - [x] fix: text in date and time inputs is too light
 - [x] **Fun Automation**: For specific presets like "Grocery Shopping," use an RNG (Random Number Generator) to decide who does what. Example: "It's [Name]'s turn to push the cart!!" or "You're paying this time!" automatically added to the description.
