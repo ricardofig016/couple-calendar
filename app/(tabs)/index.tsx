@@ -155,7 +155,6 @@ export default function HomeScreen() {
       });
 
       if (response.ok) {
-        Alert.alert("Success", id ? "Event updated!" : "Event added to calendar!");
         clearForm();
         if (id) {
           router.push("/manage");

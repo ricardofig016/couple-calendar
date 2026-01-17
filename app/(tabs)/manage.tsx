@@ -105,7 +105,6 @@ export default function ManageScreen() {
               }),
             });
             if (response.ok) {
-              Alert.alert("Success", "Event deleted");
               fetchEvents();
             } else {
               throw new Error("Failed to delete event");
