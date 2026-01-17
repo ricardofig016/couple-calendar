@@ -28,7 +28,6 @@ A lightweight Expo (React Native) application designed to seamlessly sync events
 
    ```javascript
    function doGet(e) {
-     // Replace with your actual Calendar ID
      var calendarId = "<YOUR_CALENDAR_ID>@group.calendar.google.com";
      var calendar = CalendarApp.getCalendarById(calendarId);
 
@@ -73,12 +72,15 @@ A lightweight Expo (React Native) application designed to seamlessly sync events
        }
      }
 
-     // Handle Creation (Default)
-     calendar.createEvent(data.title, new Date(data.start), new Date(data.end), {
-       description: data.description,
-     });
+     // Handle Creation
+     if (data.action === "create") {
+       calendar.createEvent(data.title, new Date(data.start), new Date(data.end), {
+         description: data.description,
+       });
+       return ContentService.createTextOutput("Success");
+     }
 
-     return ContentService.createTextOutput("Success");
+     return ContentService.createTextOutput("Error: Invalid Action");
    }
    ```
 

@@ -136,10 +136,12 @@ export function useEventForm() {
       const finalTitle = selectedPreset ? selectedPreset.resolveTitle(title, eventStartDate) : title;
       const finalDescription = selectedPreset ? selectedPreset.resolve(description) : description;
 
+      const action = id && id.length > 0 ? "edit" : "create";
+
       const response = await fetch(SCRIPT_URL, {
         method: "POST",
         body: JSON.stringify({
-          action: id ? "edit" : "create",
+          action: action,
           id: id,
           title: finalTitle,
           description: finalDescription,
