@@ -8,6 +8,7 @@
 - [ ] feat: add a button to clear everything to default state.
 - [ ] feat: add an icon to the app (the image from the discord server).
 
+- [x] feat: manage tab should have a list of the events from the last 2 days the upcomming events in the next 3 months
 - [x] feat: susbstitute unused explore tab with a new tab to manage events.
 - [x] fix: vertical spacing between start/end time and their inputs (while spans multiple days in not chekced) is smaller than the other vertical spacings between date and time labels and their inputs
 - [x] fix: text in date and time inputs is too light

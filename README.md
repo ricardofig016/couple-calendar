@@ -27,6 +27,29 @@ A lightweight Expo (React Native) application designed to seamlessly sync events
 2. Paste the following code, replacing `"<YOUR_CALENDAR_ID>"` with your actual Google Calendar ID:
 
    ```javascript
+   function doGet(e) {
+     // Replace with your actual Calendar ID
+     var calendarId = "<YOUR_CALENDAR_ID>@group.calendar.google.com";
+     var calendar = CalendarApp.getCalendarById(calendarId);
+
+     var now = new Date();
+     var start = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000); // 2 days ago
+     var end = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000); // 3 months later
+
+     var events = calendar.getEvents(start, end);
+     var result = events.map(function (event) {
+       return {
+         id: event.getId(),
+         title: event.getTitle(),
+         description: event.getDescription() || "",
+         start: event.getStartTime().toISOString(),
+         end: event.getEndTime().toISOString(),
+       };
+     });
+
+     return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+   }
+
    function doPost(e) {
      var data = JSON.parse(e.postData.contents);
      var calendar = CalendarApp.getCalendarById("<YOUR_CALENDAR_ID>@group.calendar.google.com");
@@ -35,7 +58,7 @@ A lightweight Expo (React Native) application designed to seamlessly sync events
        description: data.description,
      });
 
-     return ContentService.createTextOutput("Success");
+     return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.JSON);
    }
    ```
 
