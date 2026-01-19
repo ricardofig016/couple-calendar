@@ -61,7 +61,7 @@ export default function HomeScreen() {
         <ScrollView contentContainerStyle={styles.container}>
           <ThemedView style={styles.header}>
             <ThemedView style={styles.titleContainer}>
-              <ThemedText type="title">{id ? "Edit Event ✨" : "Add Event ✨"}</ThemedText>
+              <ThemedText type="title">{id ? "Edit Event" : "Add Event"}</ThemedText>
             </ThemedView>
             <TouchableOpacity onPress={clearForm} disabled={isLoading}>
               <ThemedText style={{ color: dangerColor, fontWeight: "600" }}>Clear</ThemedText>
@@ -69,10 +69,14 @@ export default function HomeScreen() {
           </ThemedView>
 
           <ThemedView style={styles.form}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Presets 🍭</ThemedText>
+            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+              Presets 🍭
+            </ThemedText>
             <PresetList onSelect={applyPreset} isLoading={isLoading} />
 
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Title</ThemedText>
+            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+              Title
+            </ThemedText>
             <TextInput
               style={[styles.input, { color, backgroundColor, borderColor }]}
               placeholder="e.g. Dinner Date"
@@ -82,7 +86,9 @@ export default function HomeScreen() {
               editable={!isLoading}
             />
 
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Description (Optional)</ThemedText>
+            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+              Description (Optional)
+            </ThemedText>
             <TextInput
               style={[styles.input, { height: 80, color, backgroundColor, borderColor }]}
               placeholder="Details..."

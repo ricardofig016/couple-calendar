@@ -4,8 +4,8 @@
 - [ ] **Shared Checklist Integration**: For "Shopping" or "Trip" presets, add a bulleted list to the description that you can both see/edit in the calendar.
 - [ ] **Relationship Milestone Countdowns**: A small section in the app showing days until next big event or anniversary.
 - [ ] **Mood Picker**: When creating an event, select a "Vibe" (Chill, Romantic, Productive) to change the event color or description style.
-- [ ] fix: the data.action thing sent to the backend is not always "create" when creating a new event
 
+- [x] fix: the data.action thing sent to the backend is not always "create" when creating a new event
 - [x] feat: add an icon to the app (the image from the discord server).
 - [x] feat: add a button to clear everything to default state.
 - [x] feat: while the event being added, show a loading spinner to indicate the process is ongoing.

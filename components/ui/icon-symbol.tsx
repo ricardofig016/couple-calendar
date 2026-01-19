@@ -23,6 +23,7 @@ const MAPPING = {
   trash: "delete",
   "chevron.down": "keyboard-arrow-down",
   "chevron.up": "keyboard-arrow-up",
+  gearshape: "settings",
 } as IconMapping;
 
 /**

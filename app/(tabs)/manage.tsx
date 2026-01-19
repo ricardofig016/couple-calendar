@@ -147,7 +147,7 @@ export default function ManageScreen() {
                   fontFamily: Fonts.rounded,
                 }}
               >
-                Manage ✨
+                Manage
               </ThemedText>
             </ThemedView>
             <TouchableOpacity onPress={() => refreshEvents(false)} disabled={isGlobalLoading || isLoading}>
