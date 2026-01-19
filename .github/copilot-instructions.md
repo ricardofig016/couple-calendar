@@ -4,30 +4,32 @@ This repository is a lightweight Expo (React Native) application designed to syn
 
 ## Architecture & Integration
 
-- **"No-Auth" Proxy**: Uses a **Google Apps Script Web App** to bypass OAuth.
-  - **Fetching**: `GET` to `EXPO_PUBLIC_SCRIPT_URL` returning `CalendarEvent[]`.
-  - **Mutations**: `POST` to `EXPO_PUBLIC_SCRIPT_URL` with `{ action: 'create' | 'edit' | 'delete', ... }`.
-- **Global State**: `EventContext` in [context/event-context.tsx](context/event-context.tsx).
-  - **Refresh Pattern**: Always call `refreshEvents(false)` after mutations (e.g., in `use-event-form.ts`) for background UI updates.
+- **"No-Auth" Proxy**: Uses a **Google Apps Script Web App** (URL in `EXPO_PUBLIC_SCRIPT_URL`) to bypass OAuth.
+  - **Fetching**: `GET` to the script URL returning `CalendarEvent[]`.
+  - **Mutations**: `POST` to the script URL with `{ action: 'create' | 'edit' | 'delete', id, title, description, start, end }`.
+- **Global State**: Managed by `EventProvider` in [context/event-context.tsx](context/event-context.tsx).
+  - **Refresh Pattern**: Always call `refreshEvents(false)` after mutations for background UI updates without showing a global spinner.
 
-## Preset System
+## Preset & Logic System
 
-Defined in [utils/preset.ts](utils/preset.ts).
+- **Logic Engine**: Defined in [utils/preset.ts](utils/preset.ts) using regex-based placeholders.
+  - **Placeholders**: `[A]` and `[B]` (linked couple), `[KEY]` (random name), `[KEY: item1, item2]` (choice with "losers").
+  - **Resolution**: `useEventForm` MUST call `preset.resolveTitle()` and `preset.resolve()` before sending data to the backend to persist resolved choices.
+- **Smart Titles**: `DinnerPreset` dynamically shifts titles (Dinner -> Breakfast/Lunch/Snack) based on the `startTime`.
 
-- **Placeholders**: `[A]` and `[B]` (linked couple), `[KEY]` (random name), `[KEY: item1, item2]` (choice with "losers").
-- **Resolution**: `useEventForm` calls `preset.resolveTitle()` and `preset.resolve()` before sending to backend.
-- **Example**: `DinnerPreset` dynamically shifts from "Dinner" to "Breakfast/Lunch" based on `startTime`.
+## UI & Component Patterns
 
-## UI & Scaling
+- **Themed Components**: Use `ThemedText` and `ThemedView` from [components/](components/).
+- **Colors & Typography**: Use `useThemeColor()` for semantic colors and `Fonts.rounded` from [constants/theme.ts](constants/theme.ts) for headings.
+- **Icon Strategy**: Use [components/ui/icon-symbol.tsx](components/ui/icon-symbol.tsx). It uses SF Symbols on iOS; non-Apple platforms require adding mappings to the `MAPPING` constant.
+- **HTML in Text**: The backend may return `<b>` tags. Strip them in UI using `.replace(/<[^>]*>?/gm, "")` (see [app/(tabs)/manage.tsx](app/%28tabs%29/manage.tsx)).
+- **Date Formatting**: Follow the `getEventDateText` pattern in [app/(tabs)/manage.tsx](app/%28tabs%29/manage.tsx) for consistent date/time ranges.
 
-- **Components**: Use `ThemedText` and `ThemedView` from [components/](components/).
-- **Theming**: Use `useThemeColor()` and `Fonts.rounded` from [constants/theme.ts](constants/theme.ts).
-- **Icons**: Use [components/ui/icon-symbol.tsx](components/ui/icon-symbol.tsx). SF Symbols must be mapped to Material Icons in the `MAPPING` constant.
-- **HTML Handling**: Backend supports `<b>`. Strip it in UI with `.replace(/<[^>]*>?/gm, "")`.
-- **Date Formatting**: Use `getEventDateText` in [app/(tabs)/manage.tsx](app/%28tabs%29/manage.tsx).
+## Workflows & State Logic
 
-## Workflows
-
-- **Dev**: `npx expo start`
-- **Build**: `npx eas build --platform android --profile preview`. Env vars like `EXPO_PUBLIC_SCRIPT_URL` must be in `eas.json`.
-- **Forms**: [hooks/use-event-form.ts](hooks/use-event-form.ts) handles all date/time and "All Day" (`00:00`-`23:59`) logic.
+- **Event Forms**: [hooks/use-event-form.ts](hooks/use-event-form.ts) handles all date/time and "All Day" logic.
+  - **"All Day" Pattern**: Represented as `00:00` to `23:59`.
+- **Navigation**: Uses `expo-router`. Params are passed to `index.tsx` for editing existing events.
+- **Dev Commands**:
+  - `npx expo start` for local development.
+  - `npx eas build --platform android --profile preview` for APK builds. Env vars must be defined in `eas.json`.
