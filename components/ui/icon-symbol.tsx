@@ -18,6 +18,7 @@ const MAPPING = {
   "chevron.right": "chevron-right",
   calendar: "calendar-today",
   plus: "add",
+  "plus.circle.fill": "add-circle",
   "arrow.clockwise": "refresh",
   pencil: "edit",
   trash: "delete",
