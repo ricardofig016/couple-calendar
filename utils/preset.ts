@@ -156,10 +156,11 @@ export class DinnerPreset extends Preset {
 
 export const PRESETS: Preset[] = [
   new DinnerPreset(),
-  new Preset("🍿 Movie", "🍿 Movie Night", "🎬 We'll watch: [MOVIES: movie1, movie2]\n📍 Location: ", ["MOVIES"]),
-  new Preset("🛒 Shopping", "🛒 Shopping", "💸 [A] is paying today!\n🛒💨 That means [B] is on cart duty!", [], []),
-  new Preset("😴 Sleepover", "😴 Sleepover", "📍 Location: [PERSON]'s\n🍪 Don't forget the snacks!", [], ["PERSON"]),
-  new Preset("🎂 Birthday", "🎂 [PERSON]'s Birthday", "🎉 Happy birthday [PERSON: value]!\n🎁 Gift: \n📍 Location: ", [], [], ["PERSON"]),
-  new Preset("🎉 Party", "🎉 Party Time", "💃 Get ready to celebrate!\n🥴🍾 Don't drink TOOO much!\n📍 Location: "),
-  new Preset("🏋️ Gym", "🏋️ Gym Session", "💪✨ Gains. Gains! GAINS!!\n💧 Don't forget to stay hydrated!"),
+  new Preset("🍿 Movie", "🍿 Movie Night", "🎬 We'll watch: [MOVIES: movie1, movie2]\n📍 Location: \n✨ Don't forget the popcorn!", ["MOVIES"]),
+  new Preset("🛒 Shopping", "🛒 Grocery Run", "💸 [A] is paying today! 💳\n🛒💨 That means [B] is on cart duty!", [], []),
+  new Preset("😴 Sleepover", "😴 Sleepover", "📍 Location: [PERSON]'s 🏠\n🍪 Don't forget the snacks and cuddles!", [], ["PERSON"]),
+  new Preset("🎂 Birthday", "🎂 [PERSON]'s Birthday", "🎉 Happy birthday [PERSON: value]! 🎈\n🎁 Gift: \n📍 Location: ", [], [], ["PERSON"]),
+  new Preset("🎉 Party", "🎉 Party Time", "💃 Get ready to celebrate! ✨\n🥴🍾 Don't drink TOOO much!\n📍 Location: "),
+  new Preset("🏋️ Gym", "🏋️ Gym Session", "💪✨ Gains. Gains! GAINS!!\n💧 Don't forget to stay hydrated! 🥤"),
+  new Preset("☕ Coffee", "☕ Coffee Date", "📍 Location: \n🥯 Maybe a little treat too? 🥐"),
 ];

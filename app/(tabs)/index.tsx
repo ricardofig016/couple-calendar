@@ -43,6 +43,9 @@ export default function HomeScreen() {
   const color = useThemeColor({}, "text");
   const backgroundColor = useThemeColor({}, "background");
   const iconColor = useThemeColor({}, "icon");
+  const tintColor = useThemeColor({}, "tint");
+  const dangerColor = useThemeColor({}, "danger");
+  const borderColor = useThemeColor({}, "border");
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
@@ -58,20 +61,20 @@ export default function HomeScreen() {
         <ScrollView contentContainerStyle={styles.container}>
           <ThemedView style={styles.header}>
             <ThemedView style={styles.titleContainer}>
-              <ThemedText type="title">{id ? "Edit Event" : "Add Event"}</ThemedText>
+              <ThemedText type="title">{id ? "Edit Event ✨" : "Add Event ✨"}</ThemedText>
             </ThemedView>
             <TouchableOpacity onPress={clearForm} disabled={isLoading}>
-              <ThemedText style={{ color: "#ff4444" }}>Clear</ThemedText>
+              <ThemedText style={{ color: dangerColor, fontWeight: "600" }}>Clear</ThemedText>
             </TouchableOpacity>
           </ThemedView>
 
           <ThemedView style={styles.form}>
-            <ThemedText type="defaultSemiBold">Presets</ThemedText>
+            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Presets 🍭</ThemedText>
             <PresetList onSelect={applyPreset} isLoading={isLoading} />
 
-            <ThemedText type="defaultSemiBold">Title</ThemedText>
+            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Title</ThemedText>
             <TextInput
-              style={[styles.input, { color, backgroundColor, borderColor: iconColor }]}
+              style={[styles.input, { color, backgroundColor, borderColor }]}
               placeholder="e.g. Dinner Date"
               placeholderTextColor={iconColor}
               value={title}
@@ -79,9 +82,9 @@ export default function HomeScreen() {
               editable={!isLoading}
             />
 
-            <ThemedText type="defaultSemiBold">Description (Optional)</ThemedText>
+            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Description (Optional)</ThemedText>
             <TextInput
-              style={[styles.input, { height: 80, color, backgroundColor, borderColor: iconColor }]}
+              style={[styles.input, { height: 80, color, backgroundColor, borderColor }]}
               placeholder="Details..."
               placeholderTextColor={iconColor}
               multiline
@@ -92,14 +95,14 @@ export default function HomeScreen() {
 
             <View style={styles.row}>
               <TouchableOpacity style={styles.checkboxContainer} onPress={() => setIsMultiDay(!isMultiDay)} activeOpacity={0.8} disabled={isLoading}>
-                <Checkbox value={isMultiDay} onValueChange={setIsMultiDay} color={isMultiDay ? "#0a7ea4" : undefined} disabled={isLoading} />
+                <Checkbox value={isMultiDay} onValueChange={setIsMultiDay} color={isMultiDay ? tintColor : undefined} disabled={isLoading} style={styles.checkbox} />
                 <ThemedText type="defaultSemiBold" style={styles.checkboxLabel}>
                   multiple days
                 </ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.checkboxContainer} onPress={() => setIsAllDay(!isAllDay)} activeOpacity={0.8} disabled={isLoading}>
-                <Checkbox value={isAllDay} onValueChange={setIsAllDay} color={isAllDay ? "#0a7ea4" : undefined} disabled={isLoading} />
+                <Checkbox value={isAllDay} onValueChange={setIsAllDay} color={isAllDay ? tintColor : undefined} disabled={isLoading} style={styles.checkbox} />
                 <ThemedText type="defaultSemiBold" style={styles.checkboxLabel}>
                   all day
                 </ThemedText>
@@ -167,8 +170,8 @@ export default function HomeScreen() {
             )}
 
             <View style={{ marginTop: 20 }}>
-              <TouchableOpacity style={[styles.submitButton, { backgroundColor: "#0a7ea4" }, isLoading && { opacity: 0.7 }]} onPress={handleSubmit} disabled={isLoading} activeOpacity={0.8}>
-                {isLoading ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.submitButtonText}>{id ? "Update Event" : "Schedule Event"}</ThemedText>}
+              <TouchableOpacity style={[styles.submitButton, { backgroundColor: tintColor }, isLoading && { opacity: 0.7 }]} onPress={handleSubmit} disabled={isLoading} activeOpacity={0.8}>
+                {isLoading ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.submitButtonText}>{id ? "Update Event 💖" : "Schedule Event 💖"}</ThemedText>}
               </TouchableOpacity>
             </View>
           </ThemedView>
@@ -209,13 +212,14 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 32,
+    padding: 24,
     gap: 16,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 8,
   },
   titleContainer: {
     flexDirection: "row",
@@ -225,10 +229,15 @@ const styles = StyleSheet.create({
     padding: 2,
     gap: 12,
   },
+  sectionTitle: {
+    marginTop: 8,
+    fontSize: 18,
+  },
   input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
+    borderWidth: 2,
+    borderRadius: 16,
+    padding: 16,
+    fontSize: 16,
   },
   row: {
     flexDirection: "row",
@@ -238,21 +247,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 10,
-    gap: 8,
+    gap: 10,
+  },
+  checkbox: {
+    borderRadius: 6,
   },
   checkboxLabel: {
     fontSize: 16,
   },
   submitButton: {
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 16,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 48,
+    minHeight: 56,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   submitButtonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
   },
 });

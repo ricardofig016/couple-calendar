@@ -18,7 +18,8 @@ export default function ManageScreen() {
   const router = useRouter();
   const iconColor = useThemeColor({}, "icon");
   const tintColor = useThemeColor({}, "tint");
-  const borderColor = useThemeColor({ light: "#e0e0e0", dark: "#333" }, "icon");
+  const borderColor = useThemeColor({}, "border");
+  const successColor = useThemeColor({}, "success");
 
   const { events, isLoading: isGlobalLoading, refreshEvents } = useEvents();
   const [isLoading, setIsLoading] = useState(false);
@@ -118,8 +119,7 @@ export default function ManageScreen() {
     const end = new Date(event.end);
     const isMultiDay = start.toDateString() !== end.toDateString();
 
-    const isAllDay =
-      start.getHours() === 0 && start.getMinutes() === 0 && (end.getHours() === 23 && end.getMinutes() === 59 || end.getHours() === 0 && end.getMinutes() === 0 && isMultiDay);
+    const isAllDay = start.getHours() === 0 && start.getMinutes() === 0 && ((end.getHours() === 23 && end.getMinutes() === 59) || (end.getHours() === 0 && end.getMinutes() === 0 && isMultiDay));
 
     const dateA = formatDate(event.start);
     const timeA = formatTime(event.start);
@@ -147,17 +147,17 @@ export default function ManageScreen() {
                   fontFamily: Fonts.rounded,
                 }}
               >
-                Manage
+                Manage ✨
               </ThemedText>
             </ThemedView>
             <TouchableOpacity onPress={() => refreshEvents(false)} disabled={isGlobalLoading || isLoading}>
-              <IconSymbol name="arrow.clockwise" size={24} color={iconColor} />
+              <IconSymbol name="arrow.clockwise" size={24} color={tintColor} />
             </TouchableOpacity>
           </ThemedView>
 
           <ThemedView style={styles.section}>
             <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-              Recent & Upcoming Events
+              Recent & Upcoming Events 🎈
             </ThemedText>
             {events.length === 0 && !isGlobalLoading && !isLoading ? (
               <ThemedText style={styles.emptyText}>No events found in the selected range.</ThemedText>
@@ -173,24 +173,22 @@ export default function ManageScreen() {
                     style={[
                       styles.eventCard,
                       { borderColor, alignItems: "flex-start" },
-                      state === "finished" && { opacity: 0.4 },
-                      state === "in-progress" && { borderColor: "#4BB543", borderWidth: 2 },
+                      state === "finished" && { opacity: 0.5, backgroundColor: "rgba(0,0,0,0.02)" },
+                      state === "in-progress" && { borderColor: successColor, borderWidth: 2, backgroundColor: `${successColor}10` },
                     ]}
                   >
-                    <ThemedView style={styles.eventInfo}>
+                    <ThemedView style={[styles.eventInfo, { backgroundColor: "transparent" }]}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                        <ThemedText type="defaultSemiBold" style={state === "finished" && { textDecorationLine: "line-through" }}>
+                        <ThemedText type="defaultSemiBold" style={[state === "finished" && { textDecorationLine: "line-through" }, { fontSize: 17 }]}>
                           {event.title}
                         </ThemedText>
                         {state === "in-progress" && (
-                          <View style={{ backgroundColor: "#4BB543", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                            <ThemedText style={{ color: "white", fontSize: 10, fontWeight: "bold" }}>LIVE</ThemedText>
+                          <View style={{ backgroundColor: successColor, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 }}>
+                            <ThemedText style={{ color: "white", fontSize: 10, fontWeight: "800" }}>LIVE ✨</ThemedText>
                           </View>
                         )}
                       </View>
-                      <ThemedText style={[styles.eventDate, { color: iconColor }]}>
-                        {getEventDateText(event)}
-                      </ThemedText>
+                      <ThemedText style={[styles.eventDate, { color: iconColor }]}>{getEventDateText(event)}</ThemedText>
                       {event.description ? (
                         <View style={{ marginTop: 4 }}>
                           {/* Hidden measurer to detect if description should have an expand button */}
@@ -254,13 +252,14 @@ export default function ManageScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 32,
+    padding: 24,
     gap: 16,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 8,
   },
   titleContainer: {
     flexDirection: "row",
@@ -271,44 +270,52 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   eventCard: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 8,
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 2,
+    marginBottom: 12,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   eventInfo: {
-    gap: 2,
+    gap: 4,
     flex: 1,
   },
   eventActions: {
     flexDirection: "column",
-    gap: 4,
+    gap: 8,
     marginLeft: 12,
   },
   actionButton: {
-    padding: 4,
+    padding: 6,
   },
   eventDate: {
     fontSize: 14,
+    fontWeight: "500",
   },
   eventDescription: {
-    fontSize: 13,
+    fontSize: 14,
     marginTop: 4,
-    opacity: 0.8,
+    lineHeight: 18,
   },
   emptyText: {
     textAlign: "center",
-    marginTop: 20,
+    marginTop: 40,
     opacity: 0.6,
+    fontSize: 16,
   },
   divider: {
-    height: 1,
-    marginVertical: 8,
+    height: 2,
+    marginVertical: 16,
+    borderRadius: 1,
   },
 });

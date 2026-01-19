@@ -13,13 +13,20 @@ interface DateTimePickerButtonProps {
 
 export function DateTimePickerButton({ label, value, onPress, disabled, style }: DateTimePickerButtonProps) {
   const backgroundColor = useThemeColor({}, "background");
-  const iconColor = useThemeColor({}, "icon");
+  const borderColor = useThemeColor({}, "border");
+  const tintColor = useThemeColor({}, "tint");
 
   return (
-    <View style={[{ gap: 12 }, style]}>
-      {label && <ThemedText type="defaultSemiBold">{label}</ThemedText>}
-      <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor: iconColor }]} onPress={onPress} disabled={disabled}>
-        <ThemedText type="defaultSemiBold">{value}</ThemedText>
+    <View style={[{ gap: 8 }, style]}>
+      {label && (
+        <ThemedText type="defaultSemiBold" style={{ fontSize: 16 }}>
+          {label}
+        </ThemedText>
+      )}
+      <TouchableOpacity style={[styles.dateButton, { backgroundColor, borderColor }]} onPress={onPress} disabled={disabled}>
+        <ThemedText type="defaultSemiBold" style={{ color: tintColor, fontSize: 17 }}>
+          {value}
+        </ThemedText>
       </TouchableOpacity>
     </View>
   );
@@ -27,8 +34,10 @@ export function DateTimePickerButton({ label, value, onPress, disabled, style }:
 
 const styles = StyleSheet.create({
   dateButton: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
+    borderWidth: 2,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
