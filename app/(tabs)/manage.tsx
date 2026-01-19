@@ -177,7 +177,12 @@ export default function ManageScreen() {
                       state === "in-progress" && { borderColor: successColor, borderWidth: 2, backgroundColor: `${successColor}10` },
                     ]}
                   >
-                    <ThemedView style={[styles.eventInfo, { backgroundColor: "transparent" }]}>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => canExpand[eventKey] && toggleExpand(eventKey)}
+                      disabled={!canExpand[eventKey]}
+                      style={[styles.eventInfo, { backgroundColor: "transparent" }]}
+                    >
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                         <ThemedText type="defaultSemiBold" style={[state === "finished" && { textDecorationLine: "line-through" }, { fontSize: 17 }]}>
                           {event.title}
@@ -207,7 +212,7 @@ export default function ManageScreen() {
                           </ThemedText>
                         </View>
                       ) : null}
-                    </ThemedView>
+                    </TouchableOpacity>
                     <View style={styles.eventActions}>
                       <TouchableOpacity style={styles.actionButton} onPress={() => handleEdit(event)} disabled={isLoading}>
                         <IconSymbol name="pencil" size={20} color={iconColor} />
