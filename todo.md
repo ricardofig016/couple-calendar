@@ -1,9 +1,16 @@
 # Todo
 
-- [ ] **Mystery Date Generator**: A button that picks a random date idea from a pre-defined list and schedules it at a time both are free.
-- [ ] **Shared Checklist Integration**: For "Shopping" or "Trip" presets, add a bulleted list to the description that you can both see/edit in the calendar.
-- [ ] **Relationship Milestone Countdowns**: A small section in the app showing days until next big event or anniversary.
-- [ ] **Mood Picker**: When creating an event, select a "Vibe" (Chill, Romantic, Productive) to change the event color or description style.
+- [ ] feat: add a holiday preset
+- [ ] feat: add a day together preset
+- [ ] feat: add a doctors appointment preset
+- [ ] feat: add a cleaning preset
+- [ ] feat: add a meeting preset
+- [ ] feat: add a nap preset
+- [ ] feat: let the user input their own calendar ID to sync with a specific calendar instead of the default one.
+- [ ] feat: let the user have multiple calendars to sync with, choose which calendar to add the event to when creating an event, chose which calendars to view events from when viewing events (checkbox).
+- [ ] fix: when the user changes the start time/date, the end time/date should change if it is before the start time and vice versa.
+- [ ] chore: remove upcoming features from manage screen
+- [ ] feat: add a daily notification reminder for events happening that day at a user specified time (default 7am)
 
 - [x] fix: the data.action thing sent to the backend is not always "create" when creating a new event
 - [x] feat: add an icon to the app (the image from the discord server).
