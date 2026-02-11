@@ -48,7 +48,6 @@ function doGet(e) {
     const tz = Session.getScriptTimeZone();
     const eventList = events.map((event) => ({
       id: event.getId(),
-      iCalUid: event.getICalUID(),
       title: event.getTitle(),
       description: event.getDescription(),
       start: formatIsoWithTz(event.getStartTime(), tz),
@@ -93,14 +92,13 @@ function doPost(e) {
         event.setDescription(description);
       }
 
-      return sendResponse({ ok: true, eventId: event.getId(), iCalUid: event.getICalUID() }, 200);
+      return sendResponse({ ok: true, eventId: event.getId() }, 200);
     }
 
     // Edit event
     if (action === "edit") {
       const eventId = data.id;
-      const iCalUid = data.iCalUid;
-      const event = findEvent(calendar, eventId, iCalUid, data.start, data.end);
+      const event = findEvent(calendar, eventId);
 
       if (!event) {
         return sendResponse({ ok: false, error: "Event not found with ID: " + eventId }, 404);
@@ -121,14 +119,13 @@ function doPost(e) {
         event.setTime(startTime, endTime);
       }
 
-      return sendResponse({ ok: true, eventId: event.getId(), iCalUid: event.getICalUID() }, 200);
+      return sendResponse({ ok: true, eventId: event.getId() }, 200);
     }
 
     // Delete event
     if (action === "delete") {
       const eventId = data.id;
-      const iCalUid = data.iCalUid;
-      const event = findEvent(calendar, eventId, iCalUid, data.start, data.end);
+      const event = findEvent(calendar, eventId);
 
       if (!event) {
         return sendResponse({ ok: false, error: "Event not found with ID: " + eventId }, 404);
@@ -164,35 +161,11 @@ function formatIsoWithTz(date, tz) {
   return Utilities.formatDate(date, tz, "yyyy-MM-dd'T'HH:mm:ssXXX");
 }
 
-function findEvent(calendar, eventId, iCalUid, startStr, endStr) {
+function findEvent(calendar, eventId) {
   if (eventId) {
     const event = calendar.getEventById(eventId);
     if (event) return event;
   }
 
-  if (iCalUid) {
-    const range = deriveSearchRange(startStr, endStr);
-    const events = calendar.getEvents(range.start, range.end);
-    for (let i = 0; i < events.length; i++) {
-      if (events[i].getICalUID() === iCalUid) return events[i];
-    }
-  }
-
   return null;
-}
-
-function deriveSearchRange(startStr, endStr) {
-  // Fallback search window: +/- 30 days around now
-  const now = new Date();
-  let start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  let end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-  const s = parseDate(startStr);
-  const e = parseDate(endStr);
-  if (s && e) {
-    start = new Date(s.getTime() - 24 * 60 * 60 * 1000);
-    end = new Date(e.getTime() + 24 * 60 * 60 * 1000);
-  }
-
-  return { start, end };
 }
