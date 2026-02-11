@@ -1,5 +1,5 @@
 import { Checkbox } from "expo-checkbox";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -60,10 +60,15 @@ export default function HomeScreen() {
   const [showMultiEndTimePicker, setShowMultiEndTimePicker] = useState(false);
   const [showCalendarList, setShowCalendarList] = useState(false);
 
-  const { availableCalendars, selectedCalendars, primaryCalendar } = useCalendars();
+  const { availableCalendars, selectedCalendars, primaryCalendar, fetchCalendarList, isLoadingCalendars } = useCalendars();
   const selectableCalendars = availableCalendars.filter((cal) => selectedCalendars.includes(cal.id));
   const calendarOptions = selectableCalendars.length > 0 ? selectableCalendars : availableCalendars;
   const selectedCalendar = calendarOptions.find((cal) => cal.id === calendarId);
+
+  useEffect(() => {
+    if (availableCalendars.length > 0) return;
+    fetchCalendarList();
+  }, [availableCalendars.length, fetchCalendarList]);
 
   return (
     <ThemedView style={{ flex: 1 }}>
@@ -95,18 +100,21 @@ export default function HomeScreen() {
                   </TouchableOpacity>
                 )}
               </View>
-              <View style={[styles.calendarSelected, { borderColor, backgroundColor }]}>
-                <ThemedText style={{ color }}>{selectedCalendar?.name || selectedCalendar?.id || "No calendar selected"}</ThemedText>
-                {primaryCalendar === calendarId ? (
-                  <View style={[styles.primaryPill, { borderColor: successColor }]}>
-                    <ThemedText style={{ color: successColor, fontSize: 12 }}>Primary</ThemedText>
-                  </View>
-                ) : null}
-              </View>
+              {!showCalendarList && (
+                <View style={[styles.calendarSelected, { borderColor, backgroundColor }]}>
+                  <ThemedText style={{ color }}>{selectedCalendar?.name || selectedCalendar?.id || (isLoadingCalendars ? "Loading calendars..." : "No calendar selected")}</ThemedText>
+                  {primaryCalendar === calendarId ? (
+                    <View style={[styles.primaryPill, { borderColor: successColor }]}>
+                      <ThemedText style={{ color: successColor, fontSize: 12 }}>Primary</ThemedText>
+                    </View>
+                  ) : null}
+                </View>
+              )}
               {showCalendarList && calendarOptions.length > 1 && (
                 <View style={styles.calendarList}>
                   {calendarOptions.map((cal) => {
                     const isSelected = calendarId === cal.id;
+                    const isPrimary = primaryCalendar === cal.id;
                     return (
                       <TouchableOpacity
                         key={cal.id}
@@ -117,7 +125,14 @@ export default function HomeScreen() {
                         }}
                         disabled={isLoading}
                       >
-                        <ThemedText style={{ color }}>{cal.name || cal.id}</ThemedText>
+                        <View style={{ flexDirection: "row", gap: 8, alignItems: "center", flex: 1 }}>
+                          <ThemedText style={{ color }}>{cal.name || cal.id}</ThemedText>
+                          {isPrimary && (
+                            <View style={[styles.primaryPill, { borderColor: successColor, borderWidth: 2 }]}>
+                              <ThemedText style={{ color: successColor, fontSize: 12 }}>Primary</ThemedText>
+                            </View>
+                          )}
+                        </View>
                         {isSelected && <ThemedText style={{ color: tintColor, fontSize: 12 }}>Selected</ThemedText>}
                       </TouchableOpacity>
                     );

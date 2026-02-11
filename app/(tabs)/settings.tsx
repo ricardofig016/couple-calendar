@@ -196,11 +196,20 @@ export default function SettingsScreen() {
                             {calendar.description ? <ThemedText style={styles.helpText}>{calendar.description}</ThemedText> : null}
                           </View>
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.primaryBadge, isPrimary && { borderColor: successColor }]} onPress={() => setPrimaryCalendar(calendar.id)} disabled={!isSelected}>
-                          <ThemedText numberOfLines={1} style={{ color: isPrimary ? successColor : textColor, fontSize: 12 }}>
-                            {isPrimary ? "Primary" : "Set Primary"}
-                          </ThemedText>
-                        </TouchableOpacity>
+                        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+                          {isPrimary && (
+                            <View style={[styles.primaryPill, { borderColor: successColor, borderWidth: 1 }]}>
+                              <ThemedText style={{ color: successColor, fontSize: 12 }}>Primary</ThemedText>
+                            </View>
+                          )}
+                          {isSelected && !isPrimary && (
+                            <TouchableOpacity style={[styles.primaryBadge, { borderColor }]} onPress={() => setPrimaryCalendar(calendar.id)}>
+                              <ThemedText numberOfLines={1} style={{ color: textColor, fontSize: 12 }}>
+                                Set Primary
+                              </ThemedText>
+                            </TouchableOpacity>
+                          )}
+                        </View>
                       </View>
                     );
                   })
@@ -315,6 +324,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     minWidth: 90,
     alignItems: "center",
+  },
+  primaryPill: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
   },
   checkbox: {
     borderRadius: 6,
