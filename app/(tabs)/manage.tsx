@@ -9,6 +9,7 @@ import { Collapsible } from "@/components/ui/collapsible";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Fonts } from "@/constants/theme";
 import { CalendarEvent, useEvents } from "@/context/event-context";
+import { useCalendars } from "@/hooks/use-calendars";
 import { useScriptUrl } from "@/hooks/use-script-url";
 import { useThemeColor } from "@/hooks/use-theme-color";
 
@@ -21,10 +22,15 @@ export default function ManageScreen() {
   const successColor = useThemeColor({}, "success");
 
   const { events, isLoading: isGlobalLoading, refreshEvents } = useEvents();
+  const { availableCalendars } = useCalendars();
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
   const [canExpand, setCanExpand] = useState<Record<string, boolean>>({});
+
+  const getCalendarInfo = (calendarId: string) => {
+    return availableCalendars.find((calendar) => calendar.id === calendarId);
+  };
 
   const toggleExpand = (id: string) => {
     setExpandedEvents((prev) => ({
@@ -175,13 +181,15 @@ export default function ManageScreen() {
                 const eventKey = event.id || `index-${index}`;
                 const isExpanded = expandedEvents[eventKey];
                 const state = getEventState(event.start, event.end);
+                const calendarInfo = getCalendarInfo(event.calendarId);
+                const calendarColor = calendarInfo?.color || borderColor;
 
                 return (
                   <ThemedView
                     key={eventKey}
                     style={[
                       styles.eventCard,
-                      { borderColor, alignItems: "flex-start" },
+                      { borderColor: calendarColor, alignItems: "flex-start" },
                       state === "finished" && { opacity: 0.5, backgroundColor: "rgba(0,0,0,0.02)" },
                       state === "in-progress" && { borderColor: successColor, borderWidth: 2, backgroundColor: `${successColor}10` },
                     ]}
@@ -203,6 +211,10 @@ export default function ManageScreen() {
                         )}
                       </View>
                       <ThemedText style={[styles.eventDate, { color: iconColor }]}>{getEventDateText(event)}</ThemedText>
+                      <View style={styles.calendarBadge}>
+                        <View style={[styles.calendarDot, { backgroundColor: calendarColor }]} />
+                        <ThemedText style={[styles.calendarLabel, { color: iconColor }]}>{calendarInfo?.name || event.calendarId}</ThemedText>
+                      </View>
                       {event.description ? (
                         <View style={{ marginTop: 4 }}>
                           {/* Hidden measurer to detect if description should have an expand button */}
@@ -320,6 +332,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
     lineHeight: 18,
+  },
+  calendarBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 4,
+  },
+  calendarDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  calendarLabel: {
+    fontSize: 12,
+    opacity: 0.7,
   },
   emptyText: {
     textAlign: "center",

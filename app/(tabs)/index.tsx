@@ -95,12 +95,10 @@ export default function HomeScreen() {
                   </TouchableOpacity>
                 )}
               </View>
-              <View style={[styles.calendarSelected, { borderColor, backgroundColor }]}> 
-                <ThemedText style={{ color }}>
-                  {selectedCalendar?.name || selectedCalendar?.id || "No calendar selected"}
-                </ThemedText>
+              <View style={[styles.calendarSelected, { borderColor, backgroundColor }]}>
+                <ThemedText style={{ color }}>{selectedCalendar?.name || selectedCalendar?.id || "No calendar selected"}</ThemedText>
                 {primaryCalendar === calendarId ? (
-                  <View style={[styles.primaryPill, { borderColor: successColor }]}> 
+                  <View style={[styles.primaryPill, { borderColor: successColor }]}>
                     <ThemedText style={{ color: successColor, fontSize: 12 }}>Primary</ThemedText>
                   </View>
                 ) : null}
