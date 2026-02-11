@@ -34,24 +34,24 @@ export function useEventForm() {
     d.setDate(d.getDate() + 1);
     return d;
   });
-  const [startTime, setStartTime] = useState(() => {
+  const [startTime, setStartTimeState] = useState(() => {
     const d = new Date();
     d.setHours(12, 0, 0, 0);
     return d;
   });
-  const [endTime, setEndTime] = useState(() => {
+  const [endTime, setEndTimeState] = useState(() => {
     const d = new Date();
     d.setHours(13, 0, 0, 0);
     return d;
   });
 
-  const [multiStartDate, setMultiStartDate] = useState(() => {
+  const [multiStartDate, setMultiStartDateState] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     d.setHours(12, 0, 0, 0);
     return d;
   });
-  const [multiEndDate, setMultiEndDate] = useState(() => {
+  const [multiEndDate, setMultiEndDateState] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 2);
     d.setHours(12, 0, 0, 0);
@@ -77,12 +77,12 @@ export function useEventForm() {
         setIsAllDay(allDayDetected);
 
         if (isMulti) {
-          setMultiStartDate(start);
-          setMultiEndDate(end);
+          setMultiStartDateState(start);
+          setMultiEndDateState(end);
         } else {
           setDate(start);
-          setStartTime(start);
-          setEndTime(end);
+          setStartTimeState(start);
+          setEndTimeState(end);
         }
       }
     }
@@ -107,10 +107,10 @@ export function useEventForm() {
     setDate(tomorrow);
     const start = new Date();
     start.setHours(12, 0, 0, 0);
-    setStartTime(start);
+    setStartTimeState(start);
     const end = new Date();
     end.setHours(13, 0, 0, 0);
-    setEndTime(end);
+    setEndTimeState(end);
 
     if (params.id) {
       router.setParams({ id: "", calendarId: "", title: "", description: "", start: "", end: "" });
@@ -122,6 +122,70 @@ export function useEventForm() {
     setTitle(preset.title);
     setDescription(preset.description);
   };
+
+  const setStartTime = useCallback((selectedTime: Date) => {
+    setStartTimeState(selectedTime);
+    setEndTimeState((prev) => {
+      if (prev.getTime() >= selectedTime.getTime()) return prev;
+      const next = new Date(prev);
+      next.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+      return next;
+    });
+  }, []);
+
+  const setEndTime = useCallback((selectedTime: Date) => {
+    setEndTimeState(selectedTime);
+    setStartTimeState((prev) => {
+      if (selectedTime.getTime() >= prev.getTime()) return prev;
+      const next = new Date(prev);
+      next.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+      return next;
+    });
+  }, []);
+
+  const setMultiStartDate = useCallback(
+    (selectedDate: Date) => {
+      setMultiStartDateState(selectedDate);
+      if (multiEndDate.getTime() < selectedDate.getTime()) {
+        setMultiEndDateState(new Date(selectedDate));
+      }
+    },
+    [multiEndDate],
+  );
+
+  const setMultiEndDate = useCallback(
+    (selectedDate: Date) => {
+      setMultiEndDateState(selectedDate);
+      if (selectedDate.getTime() < multiStartDate.getTime()) {
+        setMultiStartDateState(new Date(selectedDate));
+      }
+    },
+    [multiStartDate],
+  );
+
+  const setMultiStartTime = useCallback(
+    (selectedTime: Date) => {
+      const nextStart = new Date(multiStartDate);
+      nextStart.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+      setMultiStartDateState(nextStart);
+      if (multiEndDate.getTime() < nextStart.getTime()) {
+        setMultiEndDateState(new Date(nextStart));
+      }
+    },
+    [multiEndDate, multiStartDate],
+  );
+
+  const setMultiEndTime = useCallback(
+    (selectedTime: Date) => {
+      const nextEnd = new Date(multiEndDate);
+      nextEnd.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+      setMultiEndDateState(nextEnd);
+      if (nextEnd.getTime() < multiStartDate.getTime()) {
+        setMultiStartDateState(new Date(nextEnd));
+      }
+    },
+    [multiEndDate, multiStartDate],
+  );
 
   const handleSubmit = async () => {
     if (!title) {
@@ -235,20 +299,8 @@ export function useEventForm() {
     setMultiStartDate,
     multiEndDate,
     setMultiEndDate,
-    setMultiStartTime: useCallback((selectedTime: Date) => {
-      setMultiStartDate((prev) => {
-        const newDate = new Date(prev);
-        newDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
-        return newDate;
-      });
-    }, []),
-    setMultiEndTime: useCallback((selectedTime: Date) => {
-      setMultiEndDate((prev) => {
-        const newDate = new Date(prev);
-        newDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
-        return newDate;
-      });
-    }, []),
+    setMultiStartTime,
+    setMultiEndTime,
     applyPreset,
     handleSubmit,
     clearForm,

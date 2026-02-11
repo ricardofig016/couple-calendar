@@ -1,63 +1,44 @@
 # Couple Calendar AI Instructions
 
-A lightweight Expo (React Native) app syncing couple events to Google Calendar via a "No-Auth" Google Apps Script proxy, featuring dynamic event presets with randomized logic.
+## Big Picture
 
-## Architecture & Data Flow
+- Expo (React Native) app with expo-router. The backend is a Google Apps Script Web App used as a no-auth proxy to Google Calendar.
+- All calendar data is pulled per selected calendar and merged client-side. See [context/event-context.tsx](context/event-context.tsx) and [hooks/use-calendars.ts](hooks/use-calendars.ts).
 
-- **"No-Auth" Proxy**: Google Apps Script Web App bypasses OAuth. `EXPO_PUBLIC_SCRIPT_URL` env var points to deployed script.
-  - **GET**: Returns `CalendarEvent[]` for events 2 days past to 90 days future.
-  - **POST**: Accepts `{ action, id, title, description, start, end }` for create/edit/delete operations.
-- **Global State**: [EventProvider](context/event-context.tsx) manages events and refresh. After mutations, call `refreshEvents(false)` for silent background reload (no spinner).
-- **Routing**: [expo-router](https://docs.expo.dev/router/introduction/). Form edits navigate via params: `/` accepts `id, title, description, start, end` for pre-population. After submit, params cleared.
+## Backend Integration
 
-## Preset & Logic Engine
+- Apps Script endpoints:
+  - GET `?action=listCalendars` returns `{ ok, data: CalendarInfo[] }`.
+  - GET `?action=getEvents&calendarId=X&daysBack=N&daysForward=M` returns `{ ok, data: CalendarEvent[] }`.
+  - POST `{ action, id, calendarId, title, description, start, end }` for create/edit/delete.
+- The app stores the Apps Script deployment ID (not the full URL). `useScriptUrl` builds `https://script.google.com/macros/s/<ID>/exec` and migrates stored full URLs by extracting the ID. See [hooks/use-script-url.ts](hooks/use-script-url.ts).
+- Settings screen is the entry point for configuring the Deployment ID. See [app/(tabs)/settings.tsx](<app/(tabs)/settings.tsx>).
 
-- **System**: [utils/preset.ts](utils/preset.ts) resolves regex placeholders **client-side before persisting**:
-  - `[A]` / `[B]`: Linked couple — assigned opposite names with 50/50 random pick.
-  - `[KEY]`: Single random person name (e.g., `[PAYER]`).
-  - `[KEY: option1, option2]`: Selects one, lists others as "losers" below (e.g., `[FOOD: Sushi, Pizza]`).
-  - `[KEY: value]`: Field extraction from description (used in `DinnerPreset` for emoji lookup).
-- **Critical**: `useEventForm.handleSubmit()` calls `preset.resolveTitle()` + `preset.resolve()` BEFORE posting. Resolved text contains `<b>` tags (for bold).
-- **DinnerPreset** extends Preset with time-based meal shifting: 5–10:30 = Breakfast, 10:30–15 = Lunch, 15–18:30 = Snack, else = Dinner. Returns emoji for matched foods if found in `FOOD_EMOJIS` map.
+## State + Storage Patterns
 
-## Form & Date Handling
+- Calendar selections live in AsyncStorage: `couple_calendar_selected_cals`, `couple_calendar_primary_cal`. Use `loadStoredSelections()` in `useFocusEffect` to sync Settings changes on focus.
+- Event range is configurable via Settings and stored in AsyncStorage: `couple_calendar_days_back`, `couple_calendar_days_forward`. `refreshEvents` reads storage each time to ensure latest range. See [hooks/use-event-range.ts](hooks/use-event-range.ts).
+- After any create/edit/delete, call `refreshEvents(false)` for silent reload.
 
-- [useEventForm](hooks/use-event-form.ts) manages single/multi-day event state:
-  - **Single-day**: `date`, `startTime`, `endTime` (3 separate state vars).
-  - **Multi-day**: `multiStartDate`, `multiEndDate` (each includes both date & time).
-  - **All Day**: Set as `00:00` to `23:59` (single-day) or `00:00` start to `23:59` end (multi-day).
-  - **Edit flow**: Nav params populate form; `clearForm()` resets state and params.
+## Event Form Rules
 
-## UI Patterns & Display
+- Form state is centralized in [hooks/use-event-form.ts](hooks/use-event-form.ts) and used by [app/(tabs)/index.tsx](<app/(tabs)/index.tsx>).
+- Single-day uses `date`, `startTime`, `endTime`; multi-day uses `multiStartDate`, `multiEndDate` (date+time).
+- Start/end are kept ordered: changing start or end adjusts the other if it would be before/after.
+- All-day sets `00:00` to `23:59` (single) or `00:00` start to `23:59` end (multi).
 
-- **Theming**: Use `ThemedText`, `ThemedView` from [components/](components/). Colors via `useThemeColor()` hook (`text`, `background`, `icon`, `tint`, `danger`, `border`, `success`).
-- **Typography**: `Fonts.rounded` from [constants/theme.ts](constants/theme.ts) for headings; semantic types in ThemedText (`title`, `default`, `defaultSemiBold`).
-- **Icons**: [icon-symbol.tsx](components/ui/icon-symbol.tsx) maps SF Symbols (iOS); other platforms need mappings in `MAPPING` constant.
-- **HTML Stripping**: Display removes `<b>` tags from descriptions: `.replace(/<[^>]*>?/gm, "")`.
+## Presets + Rendering
 
-## Google Apps Script Backend Setup
+- Presets resolve placeholders client-side before POST: `Preset.resolveTitle()` and `Preset.resolve()` in [utils/preset.ts](utils/preset.ts).
+- Descriptions can contain `<b>`; UI strips HTML with `.replace(/<[^>]*>?/gm, "")` when rendering.
 
-The backend is a Google Apps Script Web App that acts as the "No-Auth" proxy to Google Calendar. This **must be deployed first**.
+## UI Conventions
 
-**One-time setup:**
+- Use `ThemedText` and `ThemedView` with `useThemeColor()` tokens (`text`, `background`, `icon`, `tint`, `danger`, `border`, `success`).
+- Use `Fonts.rounded` for headings and `IconSymbol` for icons.
 
-1. Go to [script.google.com](https://script.google.com) → New Project.
-2. Replace `<YOUR_CALENDAR_ID>` with the shared calendar ID (format: `xyz@group.calendar.google.com`).
-3. Use the provided `doGet()` and `doPost()` functions from the README.
-4. Click **Deploy** → **New Deployment** → **Web App** with **Execute as: Me**, **Who has access: Anyone**.
-5. Copy the Web App URL (format: `https://script.google.com/macros/s/<SCRIPT_ID>/exec`).
+## Dev Workflow
 
-**Key behaviors:**
-
-- `doGet()`: Returns events from 2 days past to 90 days future as `CalendarEvent[]`.
-- `doPost()`: Handles `{ action: 'create'|'edit'|'delete', id, title, description, start, end }`.
-- **Error Debug Tip**: If EventProvider gets HTML instead of JSON, it means the script isn't deployed or returns an error page. Check deployment settings and calendar ID.
-
-## Development & Deployment
-
-- **Local**: `npx expo start` → choose web/iOS/Android.
-- **Android APK**: `eas build --platform android --profile preview` (env vars in `eas.json`, not `.env`).
-- **Linting**: `npm run lint` (expo-lint).
-- **Environment**:
-  - **Dev**: Set `EXPO_PUBLIC_SCRIPT_URL` in `.env`.
-  - **Builds**: Define in `eas.json` under the profile's `env` section (EAS uses `eas.json`, not `.env`).
+- Run locally: `npx expo start` (choose web/iOS/Android).
+- Lint: `npm run lint`.
+- Android APK: `eas build --platform android --profile preview` with envs in [eas.json](eas.json).

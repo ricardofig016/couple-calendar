@@ -6,9 +6,9 @@
 - [ ] feat: add a cleaning preset
 - [ ] feat: add a meeting preset
 - [ ] feat: add a nap preset
-- [ ] fix: when the user changes the start time/date, the end time/date should change if it is before the start time and vice versa.
-- [ ] feat: add a daily notification reminder for events happening that day at a user specified time (default 7am)
+- [ ] feat: add a daily notification reminder for events happening that day at a user specified time (default 7am, change in settings)
 
+- [x] fix: when the user changes the start time/date in event add, the end time/date should change if it is before the start time and vice versa.
 - [x] chore: remove upcoming features from manage screen
 - [x] feat: make the script input be the Deployment ID instead of the full URL, and construct the URL in the code.
 - [x] feat: let the user specify the time range for fetching events from the calendar (currently hardcoded to 2 days in the past and 3 months in the future, keep that as default).
