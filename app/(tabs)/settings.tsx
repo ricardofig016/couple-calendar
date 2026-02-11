@@ -197,7 +197,9 @@ export default function SettingsScreen() {
                           </View>
                         </TouchableOpacity>
                         <TouchableOpacity style={[styles.primaryBadge, isPrimary && { borderColor: successColor }]} onPress={() => setPrimaryCalendar(calendar.id)} disabled={!isSelected}>
-                          <ThemedText style={{ color: isPrimary ? successColor : textColor, fontSize: 12 }}>{isPrimary ? "Primary" : "Set Primary"}</ThemedText>
+                          <ThemedText numberOfLines={1} style={{ color: isPrimary ? successColor : textColor, fontSize: 12 }}>
+                            {isPrimary ? "Primary" : "Set Primary"}
+                          </ThemedText>
                         </TouchableOpacity>
                       </View>
                     );
@@ -311,6 +313,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
+    minWidth: 90,
+    alignItems: "center",
   },
   checkbox: {
     borderRadius: 6,
