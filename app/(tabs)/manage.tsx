@@ -205,7 +205,14 @@ export default function ManageScreen() {
                       styles.eventCard,
                       { borderColor: calendarColor, alignItems: "flex-start" },
                       state === "finished" && { opacity: 0.5, backgroundColor: "rgba(0,0,0,0.02)" },
-                      state === "in-progress" && { borderColor: successColor, borderWidth: 2, backgroundColor: `${successColor}10` },
+                      state === "in-progress" && {
+                        borderColor: successColor,
+                        borderWidth: 2.5,
+                        shadowColor: successColor,
+                        shadowOpacity: 0.4,
+                        shadowRadius: 8,
+                        elevation: 16,
+                      },
                     ]}
                   >
                     <TouchableOpacity
