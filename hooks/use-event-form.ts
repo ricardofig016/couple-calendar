@@ -1,5 +1,5 @@
 import { useEvents } from "@/context/event-context";
-import { useCalendarId } from "@/hooks/use-calendar-id";
+import { useCalendars } from "@/hooks/use-calendars";
 import { useScriptUrl } from "@/hooks/use-script-url";
 import { Preset } from "@/utils/preset";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -10,7 +10,7 @@ export function useEventForm() {
   const router = useRouter();
   const { refreshEvents } = useEvents();
   const { scriptUrl } = useScriptUrl();
-  const { ensureCalendarId } = useCalendarId();
+  const { ensurePrimaryCalendar } = useCalendars();
   const params = useLocalSearchParams<{
     id?: string;
     iCalUid?: string;
@@ -167,7 +167,7 @@ export function useEventForm() {
     }
 
     try {
-      const resolvedCalendarId = calendarId || (await ensureCalendarId());
+      const resolvedCalendarId = calendarId || (await ensurePrimaryCalendar());
       if (!resolvedCalendarId) {
         Alert.alert("Error", "No calendar available. Please connect a calendar in Settings.");
         return;

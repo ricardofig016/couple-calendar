@@ -1,4 +1,4 @@
-import { useCalendarId } from "@/hooks/use-calendar-id";
+import { useCalendars } from "@/hooks/use-calendars";
 import { useScriptUrl } from "@/hooks/use-script-url";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
@@ -23,7 +23,7 @@ const EventContext = createContext<EventContextType | undefined>(undefined);
 
 export function EventProvider({ children }: { children: React.ReactNode }) {
   const { scriptUrl } = useScriptUrl();
-  const { ensureCalendarId } = useCalendarId();
+  const { ensureSelectedCalendars } = useCalendars();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -37,35 +37,44 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
       if (showLoading) setIsLoading(true);
 
       try {
-        const calendarId = await ensureCalendarId();
-        if (!calendarId) {
+        const calendarIds = await ensureSelectedCalendars();
+        if (calendarIds.length === 0) {
           if (showLoading) {
-            Alert.alert("Error", "No calendar available. Please connect a calendar in Settings.");
+            Alert.alert("Error", "No calendars selected. Please choose calendars in Settings.");
           }
           return;
         }
 
         const separator = scriptUrl.includes("?") ? "&" : "?";
-        const response = await fetch(`${scriptUrl}${separator}action=getEvents&calendarId=${encodeURIComponent(calendarId)}`);
-        const text = await response.text();
+        const results = await Promise.allSettled(
+          calendarIds.map(async (calendarId) => {
+            const response = await fetch(`${scriptUrl}${separator}action=getEvents&calendarId=${encodeURIComponent(calendarId)}`);
+            const text = await response.text();
 
-        if (response.ok) {
-          try {
+            if (!response.ok) {
+              throw new Error("Failed to fetch events: " + response.status);
+            }
+
             const payload = JSON.parse(text) as { ok: boolean; data?: CalendarEvent[]; error?: string };
             if (!payload.ok || !Array.isArray(payload.data)) {
               throw new Error(payload.error || "Failed to fetch events.");
             }
-            setEvents(payload.data);
-          } catch (_e) {
-            console.error("Failed to parse JSON:", text.substring(0, 100));
-            // If we're already loading and it fails, don't show alert to prevent annoying popups on start
-            // unless it's a manual refresh
-            if (!showLoading) return;
-            Alert.alert("Error", "Backend returned HTML instead of JSON. Ensure your Google Apps Script is deployed correctly.");
+
+            return payload.data;
+          }),
+        );
+
+        const merged = results.filter((result): result is PromiseFulfilledResult<CalendarEvent[]> => result.status === "fulfilled").flatMap((result) => result.value);
+
+        if (merged.length === 0) {
+          const rejection = results.find((result) => result.status === "rejected") as PromiseRejectedResult | undefined;
+          if (rejection) {
+            throw rejection.reason;
           }
-        } else {
-          throw new Error("Failed to fetch events: " + response.status);
         }
+
+        merged.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+        setEvents(merged);
       } catch (error) {
         console.error(error);
         if (showLoading) {
