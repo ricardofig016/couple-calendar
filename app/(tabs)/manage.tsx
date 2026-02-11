@@ -6,7 +6,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Collapsible } from "@/components/ui/collapsible";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Fonts } from "@/constants/theme";
 import { CalendarEvent, useEvents } from "@/context/event-context";
@@ -273,24 +272,6 @@ export default function ManageScreen() {
               })
             )}
           </ThemedView>
-
-          <ThemedView style={[styles.divider, { backgroundColor: borderColor }]} />
-
-          <Collapsible title="Mystery Date Generator">
-            <ThemedText>Coming Soon! A button that picks a random date idea from a pre-defined list and schedules it at a time both are free.</ThemedText>
-          </Collapsible>
-
-          <Collapsible title="Relationship Milestones">
-            <ThemedText>Coming Soon! A section showing days until your next big event or anniversary.</ThemedText>
-          </Collapsible>
-
-          <Collapsible title="Mood Picker & Style">
-            <ThemedText>Select &quot;Vibes&quot; for your events to automatically change colors or description styles.</ThemedText>
-          </Collapsible>
-
-          <Collapsible title="Shared Checklists">
-            <ThemedText>Integrate mini-checklists for &quot;Shopping&quot; or &quot;Trip&quot; presets directly into your calendar events.</ThemedText>
-          </Collapsible>
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -374,10 +355,5 @@ const styles = StyleSheet.create({
     marginTop: 40,
     opacity: 0.6,
     fontSize: 16,
-  },
-  divider: {
-    height: 2,
-    marginVertical: 16,
-    borderRadius: 1,
   },
 });
