@@ -142,5 +142,6 @@ export function useCalendars() {
     setPrimaryCalendar,
     ensureSelectedCalendars,
     ensurePrimaryCalendar,
+    loadStoredSelections,
   };
 }

@@ -1,5 +1,6 @@
+import { useFocusEffect } from "@react-navigation/native";
 import { Checkbox } from "expo-checkbox";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -60,7 +61,7 @@ export default function HomeScreen() {
   const [showMultiEndTimePicker, setShowMultiEndTimePicker] = useState(false);
   const [showCalendarList, setShowCalendarList] = useState(false);
 
-  const { availableCalendars, selectedCalendars, primaryCalendar, fetchCalendarList, isLoadingCalendars } = useCalendars();
+  const { availableCalendars, selectedCalendars, primaryCalendar, fetchCalendarList, loadStoredSelections, isLoadingCalendars } = useCalendars();
   const selectableCalendars = availableCalendars.filter((cal) => selectedCalendars.includes(cal.id));
   const calendarOptions = selectableCalendars.length > 0 ? selectableCalendars : availableCalendars;
   const selectedCalendar = calendarOptions.find((cal) => cal.id === calendarId);
@@ -69,6 +70,14 @@ export default function HomeScreen() {
     if (availableCalendars.length > 0) return;
     fetchCalendarList();
   }, [availableCalendars.length, fetchCalendarList]);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Reload stored calendar selections when screen gains focus
+      // This ensures changes in Settings are reflected here
+      loadStoredSelections();
+    }, [loadStoredSelections]),
+  );
 
   return (
     <ThemedView style={{ flex: 1 }}>

@@ -1,5 +1,6 @@
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -22,7 +23,7 @@ export default function ManageScreen() {
   const successColor = useThemeColor({}, "success");
 
   const { events, isLoading: isGlobalLoading, refreshEvents } = useEvents();
-  const { availableCalendars, fetchCalendarList } = useCalendars();
+  const { availableCalendars, fetchCalendarList, loadStoredSelections } = useCalendars();
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
@@ -32,6 +33,14 @@ export default function ManageScreen() {
     if (availableCalendars.length > 0) return;
     fetchCalendarList();
   }, [availableCalendars.length, fetchCalendarList]);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Reload stored calendar selections when screen gains focus
+      // This ensures changes in Settings are reflected here
+      loadStoredSelections();
+    }, [loadStoredSelections]),
+  );
 
   const getCalendarInfo = (calendarId: string) => {
     return availableCalendars.find((calendar) => calendar.id === calendarId);
@@ -342,7 +351,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    marginTop: 4,
+    marginTop: 0,
   },
   calendarDot: {
     width: 10,
