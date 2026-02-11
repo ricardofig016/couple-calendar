@@ -6,8 +6,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Fonts } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useCalendars } from "@/hooks/use-calendars";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useScriptUrl } from "@/hooks/use-script-url";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useEffect, useState } from "react";
@@ -23,15 +23,7 @@ export default function SettingsScreen() {
   const dangerColor = useThemeColor({}, "danger");
 
   const { scriptUrl, setScriptUrl, clearScriptUrl } = useScriptUrl();
-  const {
-    availableCalendars,
-    selectedCalendars,
-    primaryCalendar,
-    isLoadingCalendars,
-    fetchCalendarList,
-    setSelectedCalendars,
-    setPrimaryCalendar,
-  } = useCalendars();
+  const { availableCalendars, selectedCalendars, primaryCalendar, isLoadingCalendars, fetchCalendarList, setSelectedCalendars, setPrimaryCalendar } = useCalendars();
   const [inputUrl, setInputUrl] = useState(scriptUrl || "");
   const [showInput, setShowInput] = useState(false);
   const [isFetchingCalendars, setIsFetchingCalendars] = useState(false);
@@ -204,11 +196,7 @@ export default function SettingsScreen() {
                             {calendar.description ? <ThemedText style={styles.helpText}>{calendar.description}</ThemedText> : null}
                           </View>
                         </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[styles.primaryBadge, isPrimary && { borderColor: successColor }]}
-                          onPress={() => setPrimaryCalendar(calendar.id)}
-                          disabled={!isSelected}
-                        >
+                        <TouchableOpacity style={[styles.primaryBadge, isPrimary && { borderColor: successColor }]} onPress={() => setPrimaryCalendar(calendar.id)} disabled={!isSelected}>
                           <ThemedText style={{ color: isPrimary ? successColor : textColor, fontSize: 12 }}>{isPrimary ? "Primary" : "Set Primary"}</ThemedText>
                         </TouchableOpacity>
                       </View>
