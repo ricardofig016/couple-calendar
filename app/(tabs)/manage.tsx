@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -22,11 +22,16 @@ export default function ManageScreen() {
   const successColor = useThemeColor({}, "success");
 
   const { events, isLoading: isGlobalLoading, refreshEvents } = useEvents();
-  const { availableCalendars } = useCalendars();
+  const { availableCalendars, fetchCalendarList } = useCalendars();
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
   const [canExpand, setCanExpand] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (availableCalendars.length > 0) return;
+    fetchCalendarList();
+  }, [availableCalendars.length, fetchCalendarList]);
 
   const getCalendarInfo = (calendarId: string) => {
     return availableCalendars.find((calendar) => calendar.id === calendarId);
