@@ -8,12 +8,15 @@ import { DateTimePickerModals } from "@/components/date-time-picker-modals";
 import { PresetList } from "@/components/preset-list";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { useCalendars } from "@/hooks/use-calendars";
 import { useEventForm } from "@/hooks/use-event-form";
 import { useThemeColor } from "@/hooks/use-theme-color";
 
 export default function HomeScreen() {
   const {
     id,
+    calendarId,
+    setCalendarId,
     title,
     setTitle,
     description,
@@ -46,6 +49,7 @@ export default function HomeScreen() {
   const tintColor = useThemeColor({}, "tint");
   const dangerColor = useThemeColor({}, "danger");
   const borderColor = useThemeColor({}, "border");
+  const successColor = useThemeColor({}, "success");
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
@@ -54,6 +58,12 @@ export default function HomeScreen() {
   const [showMultiStartTimePicker, setShowMultiStartTimePicker] = useState(false);
   const [showMultiEndDatePicker, setShowMultiEndDatePicker] = useState(false);
   const [showMultiEndTimePicker, setShowMultiEndTimePicker] = useState(false);
+  const [showCalendarList, setShowCalendarList] = useState(false);
+
+  const { availableCalendars, selectedCalendars, primaryCalendar } = useCalendars();
+  const selectableCalendars = availableCalendars.filter((cal) => selectedCalendars.includes(cal.id));
+  const calendarOptions = selectableCalendars.length > 0 ? selectableCalendars : availableCalendars;
+  const selectedCalendar = calendarOptions.find((cal) => cal.id === calendarId);
 
   return (
     <ThemedView style={{ flex: 1 }}>
@@ -73,6 +83,50 @@ export default function HomeScreen() {
               Presets 🍭
             </ThemedText>
             <PresetList onSelect={applyPreset} isLoading={isLoading} />
+
+            <ThemedView style={styles.calendarPicker}>
+              <View style={styles.labelRow}>
+                <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+                  Calendar
+                </ThemedText>
+                {calendarOptions.length > 1 && (
+                  <TouchableOpacity onPress={() => setShowCalendarList((prev) => !prev)} disabled={isLoading}>
+                    <ThemedText style={{ color: tintColor, fontWeight: "600", fontSize: 14 }}>{showCalendarList ? "Hide" : "Change"}</ThemedText>
+                  </TouchableOpacity>
+                )}
+              </View>
+              <View style={[styles.calendarSelected, { borderColor, backgroundColor }]}> 
+                <ThemedText style={{ color }}>
+                  {selectedCalendar?.name || selectedCalendar?.id || "No calendar selected"}
+                </ThemedText>
+                {primaryCalendar === calendarId ? (
+                  <View style={[styles.primaryPill, { borderColor: successColor }]}> 
+                    <ThemedText style={{ color: successColor, fontSize: 12 }}>Primary</ThemedText>
+                  </View>
+                ) : null}
+              </View>
+              {showCalendarList && calendarOptions.length > 1 && (
+                <View style={styles.calendarList}>
+                  {calendarOptions.map((cal) => {
+                    const isSelected = calendarId === cal.id;
+                    return (
+                      <TouchableOpacity
+                        key={cal.id}
+                        style={[styles.calendarOption, { borderColor }, isSelected && { borderColor: tintColor }]}
+                        onPress={() => {
+                          setCalendarId(cal.id);
+                          setShowCalendarList(false);
+                        }}
+                        disabled={isLoading}
+                      >
+                        <ThemedText style={{ color }}>{cal.name || cal.id}</ThemedText>
+                        {isSelected && <ThemedText style={{ color: tintColor, fontSize: 12 }}>Selected</ThemedText>}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+            </ThemedView>
 
             <View style={styles.labelRow}>
               <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
@@ -258,6 +312,34 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 8,
+  },
+  calendarPicker: {
+    gap: 10,
+  },
+  calendarSelected: {
+    borderWidth: 2,
+    borderRadius: 16,
+    padding: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  primaryPill: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  calendarList: {
+    gap: 8,
+  },
+  calendarOption: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   input: {
     borderWidth: 2,

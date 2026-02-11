@@ -10,7 +10,7 @@ export function useEventForm() {
   const router = useRouter();
   const { refreshEvents } = useEvents();
   const { scriptUrl } = useScriptUrl();
-  const { ensurePrimaryCalendar } = useCalendars();
+  const { ensurePrimaryCalendar, primaryCalendar } = useCalendars();
   const params = useLocalSearchParams<{
     id?: string;
     calendarId?: string;
@@ -87,6 +87,12 @@ export function useEventForm() {
       }
     }
   }, [params.id, params.title, params.description, params.start, params.end, id]);
+
+  useEffect(() => {
+    if (!calendarId && primaryCalendar) {
+      setCalendarId(primaryCalendar);
+    }
+  }, [calendarId, primaryCalendar]);
 
   const clearForm = useCallback(() => {
     setId(null);
@@ -208,6 +214,8 @@ export function useEventForm() {
 
   return {
     id,
+    calendarId,
+    setCalendarId,
     title,
     setTitle,
     description,
