@@ -23,45 +23,48 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const refreshEvents = useCallback(async (showLoading = true) => {
-    if (!scriptUrl) {
-      console.warn("Script URL is not configured");
-      return;
-    }
+  const refreshEvents = useCallback(
+    async (showLoading = true) => {
+      if (!scriptUrl) {
+        console.warn("Script URL is not configured");
+        return;
+      }
 
-    if (showLoading) setIsLoading(true);
+      if (showLoading) setIsLoading(true);
 
-    try {
-      const response = await fetch(scriptUrl);
-      const text = await response.text();
+      try {
+        const response = await fetch(scriptUrl);
+        const text = await response.text();
 
-      if (response.ok) {
-        try {
-          const data = JSON.parse(text);
-          setEvents(data);
-        } catch (_e) {
-          console.error("Failed to parse JSON:", text.substring(0, 100));
-          // If we're already loading and it fails, don't show alert to prevent annoying popups on start
-          // unless it's a manual refresh
-          if (!showLoading) return;
-          Alert.alert("Error", "Backend returned HTML instead of JSON. Ensure your Google Apps Script is deployed correctly.");
+        if (response.ok) {
+          try {
+            const data = JSON.parse(text);
+            setEvents(data);
+          } catch (_e) {
+            console.error("Failed to parse JSON:", text.substring(0, 100));
+            // If we're already loading and it fails, don't show alert to prevent annoying popups on start
+            // unless it's a manual refresh
+            if (!showLoading) return;
+            Alert.alert("Error", "Backend returned HTML instead of JSON. Ensure your Google Apps Script is deployed correctly.");
+          }
+        } else {
+          throw new Error("Failed to fetch events: " + response.status);
         }
-      } else {
-        throw new Error("Failed to fetch events: " + response.status);
+      } catch (error) {
+        console.error(error);
+        if (showLoading) {
+          Alert.alert("Error", "Could not load events.");
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error(error);
-      if (showLoading) {
-        Alert.alert("Error", "Could not load events.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    [scriptUrl],
+  );
 
   useEffect(() => {
     refreshEvents();
-  }, [refreshEvents]);
+  }, [scriptUrl]);
 
   return <EventContext.Provider value={{ events, isLoading, refreshEvents }}>{children}</EventContext.Provider>;
 }

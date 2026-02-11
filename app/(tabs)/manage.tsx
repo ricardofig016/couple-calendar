@@ -9,13 +9,12 @@ import { Collapsible } from "@/components/ui/collapsible";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Fonts } from "@/constants/theme";
 import { CalendarEvent, useEvents } from "@/context/event-context";
+import { useScriptUrl } from "@/hooks/use-script-url";
 import { useThemeColor } from "@/hooks/use-theme-color";
-
-// Using environment variable for security
-const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
 
 export default function ManageScreen() {
   const router = useRouter();
+  const { scriptUrl } = useScriptUrl();
   const iconColor = useThemeColor({}, "icon");
   const tintColor = useThemeColor({}, "tint");
   const borderColor = useThemeColor({}, "border");
@@ -55,10 +54,13 @@ export default function ManageScreen() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
-          if (!SCRIPT_URL) return;
+          if (!scriptUrl) {
+            Alert.alert("Error", "Script URL is not configured");
+            return;
+          }
           setIsLoading(true);
           try {
-            const response = await fetch(SCRIPT_URL, {
+            const response = await fetch(scriptUrl, {
               method: "POST",
               body: JSON.stringify({
                 action: "delete",
