@@ -38,10 +38,12 @@ function doGet(e) {
       return sendResponse({ ok: false, error: "Calendar not found with ID: " + calendarId }, 404);
     }
 
-    // Get events from 2 days ago to 90 days in the future
+    // Get events from configured range, defaulting to 2 days ago and 90 days ahead
     const now = new Date();
-    const startDate = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
-    const endDate = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+    const daysBack = parseNumberParam(e.parameter.daysBack, 2);
+    const daysForward = parseNumberParam(e.parameter.daysForward, 90);
+    const startDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
+    const endDate = new Date(now.getTime() + daysForward * 24 * 60 * 60 * 1000);
 
     const events = calendar.getEvents(startDate, endDate);
 
@@ -155,6 +157,13 @@ function parseDate(value) {
   if (!value) return null;
   const d = new Date(value);
   return isNaN(d.getTime()) ? null : d;
+}
+
+function parseNumberParam(value, fallback) {
+  if (value === undefined || value === null || value === "") return fallback;
+  let parsed = Number(value);
+  if (!isFinite(parsed)) return fallback;
+  return Math.max(0, Math.floor(parsed));
 }
 
 function formatIsoWithTz(date, tz) {

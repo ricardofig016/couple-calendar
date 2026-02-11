@@ -6,8 +6,10 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Fonts } from "@/constants/theme";
+import { useEvents } from "@/context/event-context";
 import { useCalendars } from "@/hooks/use-calendars";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useEventRange } from "@/hooks/use-event-range";
 import { useScriptUrl } from "@/hooks/use-script-url";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useEffect, useState } from "react";
@@ -24,9 +26,13 @@ export default function SettingsScreen() {
 
   const { scriptUrl, setScriptUrl, clearScriptUrl } = useScriptUrl();
   const { availableCalendars, selectedCalendars, primaryCalendar, isLoadingCalendars, fetchCalendarList, setSelectedCalendars, setPrimaryCalendar } = useCalendars();
+  const { daysBack, daysForward, setDaysBack, setDaysForward, resetDefaults, defaults } = useEventRange();
+  const { refreshEvents } = useEvents();
   const [inputUrl, setInputUrl] = useState(scriptUrl || "");
   const [showInput, setShowInput] = useState(false);
   const [isFetchingCalendars, setIsFetchingCalendars] = useState(false);
+  const [inputDaysBack, setInputDaysBack] = useState(String(daysBack));
+  const [inputDaysForward, setInputDaysForward] = useState(String(daysForward));
 
   const isDarkMode = colorScheme === "dark";
 
@@ -67,6 +73,11 @@ export default function SettingsScreen() {
     loadCalendars();
   }, [availableCalendars.length, fetchCalendarList, scriptUrl]);
 
+  useEffect(() => {
+    setInputDaysBack(String(daysBack));
+    setInputDaysForward(String(daysForward));
+  }, [daysBack, daysForward]);
+
   const handleRefreshCalendars = async () => {
     if (!scriptUrl) return;
     setIsFetchingCalendars(true);
@@ -87,6 +98,25 @@ export default function SettingsScreen() {
     if (nextSelected.length === 0) {
       await setPrimaryCalendar(null);
     }
+  };
+
+  const parseDayInput = (value: string, fallback: number) => {
+    if (!value.trim()) return fallback;
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(0, Math.floor(parsed));
+  };
+
+  const handleApplyRange = async () => {
+    const nextBack = parseDayInput(inputDaysBack, daysBack);
+    const nextForward = parseDayInput(inputDaysForward, daysForward);
+    await Promise.all([setDaysBack(nextBack), setDaysForward(nextForward)]);
+    await refreshEvents(false);
+  };
+
+  const handleResetRange = async () => {
+    await resetDefaults();
+    await refreshEvents(false);
   };
 
   return (
@@ -152,11 +182,9 @@ export default function SettingsScreen() {
                   <TouchableOpacity style={[styles.actionButton, { backgroundColor: tintColor, flex: 1 }]} onPress={handleSaveUrl}>
                     <ThemedText style={{ color: "#fff", fontWeight: "600", textAlign: "center" }}>Save</ThemedText>
                   </TouchableOpacity>
-                  <View style={{ width: 10 }} />
                   <TouchableOpacity style={[styles.actionButton, { backgroundColor: dangerColor, flex: 1 }]} onPress={handleClearUrl}>
                     <ThemedText style={{ color: "#fff", fontWeight: "600", textAlign: "center" }}>Clear</ThemedText>
                   </TouchableOpacity>
-                  <View style={{ width: 10 }} />
                   <TouchableOpacity style={[styles.actionButton, { backgroundColor: borderColor, flex: 1 }]} onPress={() => setShowInput(false)}>
                     <ThemedText style={{ color: textColor, fontWeight: "600", textAlign: "center" }}>Cancel</ThemedText>
                   </TouchableOpacity>
@@ -216,6 +244,45 @@ export default function SettingsScreen() {
                 )}
               </View>
             )}
+          </ThemedView>
+
+          <ThemedView style={[styles.section, { borderBottomColor: borderColor }]}>
+            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+              Event Range
+            </ThemedText>
+            <ThemedText style={styles.helpText}>Fetch events from the past and future (in days).</ThemedText>
+            <View style={styles.rangeRow}>
+              <View style={styles.rangeInputGroup}>
+                <ThemedText style={styles.rangeLabel}>Days Back</ThemedText>
+                <TextInput
+                  style={[styles.rangeInput, { color: textColor, backgroundColor, borderColor }]}
+                  keyboardType="number-pad"
+                  value={inputDaysBack}
+                  onChangeText={setInputDaysBack}
+                  placeholder={String(defaults.daysBack)}
+                  placeholderTextColor={iconColor}
+                />
+              </View>
+              <View style={styles.rangeInputGroup}>
+                <ThemedText style={styles.rangeLabel}>Days Forward</ThemedText>
+                <TextInput
+                  style={[styles.rangeInput, { color: textColor, backgroundColor, borderColor }]}
+                  keyboardType="number-pad"
+                  value={inputDaysForward}
+                  onChangeText={setInputDaysForward}
+                  placeholder={String(defaults.daysForward)}
+                  placeholderTextColor={iconColor}
+                />
+              </View>
+            </View>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={[styles.actionButton, { backgroundColor: tintColor, flex: 1 }]} onPress={handleApplyRange}>
+                <ThemedText style={{ color: "#fff", fontWeight: "600", textAlign: "center" }}>Apply</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.actionButton, { backgroundColor: borderColor, flex: 1 }]} onPress={handleResetRange}>
+                <ThemedText style={{ color: textColor, fontWeight: "600", textAlign: "center" }}>Reset Defaults</ThemedText>
+              </TouchableOpacity>
+            </View>
           </ThemedView>
 
           <ThemedView style={[styles.section, { borderBottomColor: borderColor }]}>
@@ -288,7 +355,27 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: "row",
-    gap: 10,
+    gap: 12,
+    marginTop: 12,
+  },
+  rangeRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 12,
+  },
+  rangeInputGroup: {
+    flex: 1,
+    gap: 8,
+  },
+  rangeLabel: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  rangeInput: {
+    borderWidth: 2,
+    borderRadius: 12,
+    padding: 10,
+    fontSize: 14,
   },
   actionButton: {
     paddingVertical: 10,

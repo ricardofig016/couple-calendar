@@ -1,4 +1,5 @@
 import { useCalendars } from "@/hooks/use-calendars";
+import { readEventRangeFromStorage } from "@/hooks/use-event-range";
 import { useScriptUrl } from "@/hooks/use-script-url";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
@@ -44,10 +45,16 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
+        const storedRange = await readEventRangeFromStorage();
+        const daysBack = storedRange.daysBack;
+        const daysForward = storedRange.daysForward;
+
         const separator = scriptUrl.includes("?") ? "&" : "?";
         const results = await Promise.allSettled(
           calendarIds.map(async (calendarId) => {
-            const response = await fetch(`${scriptUrl}${separator}action=getEvents&calendarId=${encodeURIComponent(calendarId)}`);
+            const response = await fetch(
+              `${scriptUrl}${separator}action=getEvents&calendarId=${encodeURIComponent(calendarId)}&daysBack=${encodeURIComponent(daysBack)}&daysForward=${encodeURIComponent(daysForward)}`,
+            );
             const text = await response.text();
 
             if (!response.ok) {

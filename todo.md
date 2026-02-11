@@ -9,8 +9,9 @@
 - [ ] fix: when the user changes the start time/date, the end time/date should change if it is before the start time and vice versa.
 - [ ] chore: remove upcoming features from manage screen
 - [ ] feat: add a daily notification reminder for events happening that day at a user specified time (default 7am)
-- [ ] feat: let the user specify the time range for fetching events from the calendar (currently hardcoded to 2 days in the past and 3 months in the future, keep that as default).
+- [ ] feat: make the script input be the Deployment ID instead of the full URL, and construct the URL in the code.
 
+- [x] feat: let the user specify the time range for fetching events from the calendar (currently hardcoded to 2 days in the past and 3 months in the future, keep that as default).
 - [x] fix: warning "Android Bundled 171ms node_modules\expo-router\entry.js (1 module) WARN Script URL is not configured" when script is configured.
 - [x] feat: let the user have multiple calendars to sync with, choose which calendar to add the event to when creating an event, chose which calendars to view events from when viewing events (checkbox).
 - [x] fix: the data.action thing sent to the backend is not always "create" when creating a new event
