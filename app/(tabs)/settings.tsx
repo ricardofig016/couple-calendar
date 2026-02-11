@@ -24,11 +24,11 @@ export default function SettingsScreen() {
   const successColor = useThemeColor({}, "success");
   const dangerColor = useThemeColor({}, "danger");
 
-  const { scriptUrl, setScriptUrl, clearScriptUrl } = useScriptUrl();
+  const { scriptUrl, deploymentId, setDeploymentId, clearDeploymentId } = useScriptUrl();
   const { availableCalendars, selectedCalendars, primaryCalendar, isLoadingCalendars, fetchCalendarList, setSelectedCalendars, setPrimaryCalendar } = useCalendars();
   const { daysBack, daysForward, setDaysBack, setDaysForward, resetDefaults, defaults } = useEventRange();
   const { refreshEvents } = useEvents();
-  const [inputUrl, setInputUrl] = useState(scriptUrl || "");
+  const [inputDeploymentId, setInputDeploymentId] = useState(deploymentId || "");
   const [showInput, setShowInput] = useState(false);
   const [isFetchingCalendars, setIsFetchingCalendars] = useState(false);
   const [inputDaysBack, setInputDaysBack] = useState(String(daysBack));
@@ -41,16 +41,16 @@ export default function SettingsScreen() {
   };
 
   const handleSaveUrl = async () => {
-    if (!inputUrl.trim()) {
+    if (!inputDeploymentId.trim()) {
       return;
     }
-    await setScriptUrl(inputUrl);
+    await setDeploymentId(inputDeploymentId);
     setShowInput(false);
   };
 
   const handleClearUrl = async () => {
-    await clearScriptUrl();
-    setInputUrl("");
+    await clearDeploymentId();
+    setInputDeploymentId("");
     setShowInput(false);
   };
 
@@ -146,18 +146,19 @@ export default function SettingsScreen() {
             <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
               Backend
             </ThemedText>
+            <ThemedText style={styles.helpText}>Paste the Apps Script deployment ID (found in the Web App URL).</ThemedText>
             {!showInput ? (
               <TouchableOpacity style={styles.settingRow} onPress={openScriptUrl}>
                 <View style={styles.settingLabel}>
                   <IconSymbol name="plus" size={20} color={iconColor} />
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={styles.settingText}>Script Web App</ThemedText>
+                    <ThemedText style={styles.settingText}>Deployment ID</ThemedText>
                     <ThemedText style={{ fontSize: 12, opacity: 0.6, marginTop: 4 }}>{scriptUrl ? "Configured ✅" : "Missing ❌"}</ThemedText>
                   </View>
                 </View>
                 <TouchableOpacity
                   onPress={() => {
-                    setInputUrl(scriptUrl || "");
+                    setInputDeploymentId(deploymentId || "");
                     setShowInput(true);
                   }}
                 >
@@ -167,16 +168,14 @@ export default function SettingsScreen() {
             ) : (
               <View style={styles.inputSection}>
                 <ThemedText type="defaultSemiBold" style={{ marginBottom: 8 }}>
-                  Apps Script URL
+                  Deployment ID
                 </ThemedText>
                 <TextInput
                   style={[styles.input, { color: textColor, backgroundColor, borderColor }]}
-                  placeholder="https://script.google.com/macros/s/..."
+                  placeholder="AKfycb..."
                   placeholderTextColor={iconColor}
-                  value={inputUrl}
-                  onChangeText={setInputUrl}
-                  multiline
-                  numberOfLines={3}
+                  value={inputDeploymentId}
+                  onChangeText={setInputDeploymentId}
                 />
                 <View style={styles.buttonRow}>
                   <TouchableOpacity style={[styles.actionButton, { backgroundColor: tintColor, flex: 1 }]} onPress={handleSaveUrl}>
