@@ -1,103 +1,47 @@
 # Couple Calendar
 
-A lightweight Expo (React Native) application designed to seamlessly sync events to Google Calendars for a couple. This app eliminates the complexity of OAuth by using a **Google Apps Script** proxy, making it perfect for personal use.
+A lightweight Expo (React Native) application designed to seamlessly sync events to Google Calendars for a couple. This app eliminates the complexity of OAuth by using a Google Apps Script proxy, making it perfect for personal use.
 
 ## Features
 
-- **No-Auth Architecture**: Bypasses complex OAuth sign-ins. Your app acts as you (the developer) to manage your calendar.
-- **Event Presets**: One-tap templates for common dates (Dinner, Movies, Gym, etc.).
-- **Dynamic Logic**:
-  - **RNG Decision Maker**: Use placeholders like `[FOOD: Sushi, Pizza]` in descriptions to let the app pick for you.
-  - **The Person Roulette**: Randomly assigns who is paying or doing chores using `[A]` and `[B]` tags.
-  - **Smart Titles**: The Dinner preset automatically changes its name to Breakfast, Lunch, or Snack based on the selected time.
-- **Flexible Scheduling**: Supports single-day timeslots and multi-day events.
-- **Themed UI**: Full support for system-wide Light and Dark modes.
+- **No-Auth Architecture**: Bypasses OAuth sign-ins. Your app acts as you to manage calendars.
+- **Multi-Calendar Support**: Select and sync multiple Google Calendars; all events merged and displayed together.
+- **Event Presets**: One-tap templates (Dinner, Movies, Gym, etc.) with dynamic logic.
+- **Dynamic Placeholders**:
+  - `[A]` / `[B]`: Assign couple members to opposite sides (who's paying, who's driving, etc.).
+  - `[KEY]`: Single random person (e.g., `[PICKER]`).
+  - `[KEY: option1, option2]`: App picks one and lists the rest as "losers" (e.g., `[FOOD: Sushi, Pizza]`).
+- **Smart Titles**: Dinner preset auto-shifts to Breakfast, Lunch, or Snack based on time.
+- **Flexible Scheduling**: Single-day, multi-day, and all-day events.
+- **Light & Dark Mode**: Full theme support.
 
 ## Technical Stack
 
-- **Frontend**: [Expo](https://expo.dev/) (React Native) with [Expo Router](https://docs.expo.dev/router/introduction/).
-- **Backend**: [Google Apps Script](https://www.google.com/script/start/) deployed as a Web App.
-- **Styling**: Themed components using CSS-in-JS.
+- **Frontend**: [Expo](https://expo.dev/) (React Native) with [Expo Router](https://docs.expo.dev/router/introduction/)
+- **Backend**: [Google Apps Script](https://www.google.com/script/start/) Web App (no OAuth)
+- **Storage**: AsyncStorage for calendar selections, event range, and deployment ID
 
 ## Setup Instructions
 
 ### 1. Google Apps Script Setup (The "Backend")
 
 1. Go to [script.google.com](https://script.google.com) and create a new project.
-2. Paste the following code, replacing `"<YOUR_CALENDAR_ID>"` with your actual Google Calendar ID:
-
-   ```javascript
-   function doGet(e) {
-     var calendarId = "<YOUR_CALENDAR_ID>@group.calendar.google.com";
-     var calendar = CalendarApp.getCalendarById(calendarId);
-
-     var now = new Date();
-     var start = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000); // 2 days ago
-     var end = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000); // 3 months later
-
-     var events = calendar.getEvents(start, end);
-     var result = events.map(function (event) {
-       return {
-         id: event.getId(),
-         title: event.getTitle(),
-         description: event.getDescription() || "",
-         start: event.getStartTime().toISOString(),
-         end: event.getEndTime().toISOString(),
-       };
-     });
-
-     return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
-   }
-
-   function doPost(e) {
-     var data = JSON.parse(e.postData.contents);
-     var calendarId = "<YOUR_CALENDAR_ID>@group.calendar.google.com";
-     var calendar = CalendarApp.getCalendarById(calendarId);
-
-     // Handle Deletion
-     if (data.action === "delete") {
-       var event = calendar.getEventById(data.id);
-       if (event) event.deleteEvent();
-       return ContentService.createTextOutput("Deleted");
-     }
-
-     // Handle Editing
-     if (data.action === "edit") {
-       var event = calendar.getEventById(data.id);
-       if (event) {
-         event.setTitle(data.title);
-         event.setDescription(data.description);
-         event.setTime(new Date(data.start), new Date(data.end));
-         return ContentService.createTextOutput("Updated");
-       }
-     }
-
-     // Handle Creation
-     if (data.action === "create") {
-       calendar.createEvent(data.title, new Date(data.start), new Date(data.end), {
-         description: data.description,
-       });
-       return ContentService.createTextOutput("Success");
-     }
-
-     return ContentService.createTextOutput("Error: Invalid Action");
-   }
-   ```
-
+2. Replace the default code with the backend script from [scripts/apps-script-backend.js](scripts/apps-script-backend.js). This handles:
+   - `action=listCalendars` - return all user calendars
+   - `action=getEvents&calendarId=X&daysBack=N&daysForward=M` - fetch events with configurable range
+   - `action=create/edit/delete` - manage events across multiple calendars
 3. Click **Deploy** > **New Deployment**.
 4. Select **Web App**. Set **Execute as: Me** and **Who has access: Anyone**.
-5. Copy the **Web App URL**.
+5. Copy the **Deployment ID** from the URL (format: `https://script.google.com/macros/s/<DEPLOYMENT_ID>/exec`). You'll need just the `<DEPLOYMENT_ID>` part.
 
 ### 2. App Configuration
 
-1. Create a `.env` file in the root directory (if not present).
-2. Add your script URL:
+1. Open the app and go to **Settings** > **Backend**.
+2. Paste your **Deployment ID** (the app will construct the full URL).
+3. Tap **Refresh** under Calendars to load all available calendars from your Google Account.
+4. Select the calendars to sync and set the **Event Range** (how many days back and forward to fetch).
 
-   ```env
-   EXPO_PUBLIC_SCRIPT_URL=https://script.google.com/macros/s/.../exec
-   ```
-
-### 3. Installation
+### 3. Installation & Running
 
 ```bash
 # Install dependencies
@@ -107,43 +51,24 @@ npm install
 npx expo start
 ```
 
-## Building for Android (Standalone APK)
-
-This app works best as a standalone APK since it uses a custom scheme.
-
-### Steps
+## Android APK Build
 
 1. Install EAS CLI: `npm install -g eas-cli`
-2. Add `EXPO_PUBLIC_SCRIPT_URL` to your `eas.json` under the relevant profile:
-
-   ```json
-   {
-     "build": {
-       "preview": {
-         "distribution": "internal",
-         "env": {
-           "EXPO_PUBLIC_SCRIPT_URL": "https://script.google.com/macros/s/.../exec"
-         }
-       }
-     }
-   }
-   ```
-
-3. Run the build:
+2. Run the build:
 
    ```bash
    npx eas build --platform android --profile preview
    ```
 
-4. Download the generated APK and install it on your Android device.
+3. Download the APK and install it on your device (no deployment ID needed at build time).
 
-## Preset logic placeholders
+## Customizing Presets
 
-You can expand the presets in [utils/preset.ts](utils/preset.ts) using these placeholders in the description:
+Edit [utils/preset.ts](utils/preset.ts) to add or modify presets. See the structure for examples of how to:
 
-- `[KEY]`: Randomly picks one of "Ricardo" or "Carolina".
-- `[A]` and `[B]`: Randomly assigns one of the two names to each tag (guaranteed to be different).
-- `[KEY: option1, option2]`: Randomly picks one option and lists the "losers" in the description.
+- Define titles, descriptions, and default times
+- Use placeholder resolution for couple names and options
+- Add custom logic (e.g., `DinnerPreset` shifts meal name by time)
 
 ---
 

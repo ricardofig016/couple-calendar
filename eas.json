@@ -9,10 +9,7 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal",
-      "env": {
-        "EXPO_PUBLIC_SCRIPT_URL": "https://script.google.com/macros/s/AKfycbz29UW7RvJL6aha_lf5VA_xtvxH9hBbLAPnQkZpyWm4CiVlbpJAZ6S2I-1iKcaSJyv2/exec"
-      }
+      "distribution": "internal"
     },
     "production": {
       "autoIncrement": true
