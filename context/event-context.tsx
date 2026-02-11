@@ -21,7 +21,7 @@ interface EventContextType {
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
 export function EventProvider({ children }: { children: React.ReactNode }) {
-  const { scriptUrl } = useScriptUrl();
+  const { scriptUrl, isLoading: isLoadingScriptUrl } = useScriptUrl();
   const { ensureSelectedCalendars } = useCalendars();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +29,7 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
   const refreshEvents = useCallback(
     async (showLoading = true) => {
       if (!scriptUrl) {
-        console.warn("Script URL is not configured");
+        if (!isLoadingScriptUrl) console.warn("Script URL is not configured");
         return;
       }
 
@@ -83,12 +83,14 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       }
     },
-    [scriptUrl],
+    [scriptUrl, isLoadingScriptUrl],
   );
 
   useEffect(() => {
+    // Only refresh after AsyncStorage has finished loading
+    if (isLoadingScriptUrl) return;
     refreshEvents();
-  }, [refreshEvents]);
+  }, [refreshEvents, isLoadingScriptUrl]);
 
   return <EventContext.Provider value={{ events, isLoading, refreshEvents }}>{children}</EventContext.Provider>;
 }
