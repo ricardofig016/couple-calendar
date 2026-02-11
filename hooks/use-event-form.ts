@@ -1,14 +1,14 @@
 import { useEvents } from "@/context/event-context";
+import { useScriptUrl } from "@/hooks/use-script-url";
 import { Preset } from "@/utils/preset";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-native";
 
-const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
-
 export function useEventForm() {
   const router = useRouter();
   const { refreshEvents } = useEvents();
+  const { scriptUrl } = useScriptUrl();
   const params = useLocalSearchParams<{
     id?: string;
     title?: string;
@@ -64,11 +64,10 @@ export function useEventForm() {
         const start = new Date(params.start);
         const end = new Date(params.end);
         const isMulti = start.toDateString() !== end.toDateString();
-        
-        const allDayDetected = 
-          start.getHours() === 0 && start.getMinutes() === 0 && 
-          (end.getHours() === 23 && end.getMinutes() === 59 || (end.getHours() === 0 && end.getMinutes() === 0 && isMulti));
-        
+
+        const allDayDetected =
+          start.getHours() === 0 && start.getMinutes() === 0 && ((end.getHours() === 23 && end.getMinutes() === 59) || (end.getHours() === 0 && end.getMinutes() === 0 && isMulti));
+
         setIsMultiDay(isMulti);
         setIsAllDay(allDayDetected);
 
@@ -118,7 +117,7 @@ export function useEventForm() {
       return;
     }
 
-    if (!SCRIPT_URL) {
+    if (!scriptUrl) {
       Alert.alert("Error", "Script URL is not configured");
       return;
     }
@@ -163,7 +162,7 @@ export function useEventForm() {
 
       const action = id && id.length > 0 ? "edit" : "create";
 
-      const response = await fetch(SCRIPT_URL, {
+      const response = await fetch(scriptUrl, {
         method: "POST",
         body: JSON.stringify({
           action: action,

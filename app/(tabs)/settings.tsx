@@ -1,4 +1,4 @@
-import { Appearance, Linking, Platform, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from "react-native";
+import { Appearance, Linking, Platform, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
@@ -6,13 +6,23 @@ import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Fonts } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useScriptUrl } from "@/hooks/use-script-url";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useState } from "react";
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const iconColor = useThemeColor({}, "icon");
   const tintColor = useThemeColor({}, "tint");
   const borderColor = useThemeColor({}, "border");
+  const backgroundColor = useThemeColor({}, "background");
+  const textColor = useThemeColor({}, "text");
+  const successColor = useThemeColor({}, "success");
+  const dangerColor = useThemeColor({}, "danger");
+
+  const { scriptUrl, setScriptUrl, clearScriptUrl } = useScriptUrl();
+  const [inputUrl, setInputUrl] = useState(scriptUrl || "");
+  const [showInput, setShowInput] = useState(false);
 
   const isDarkMode = colorScheme === "dark";
 
@@ -20,10 +30,23 @@ export default function SettingsScreen() {
     Appearance.setColorScheme(isDarkMode ? "light" : "dark");
   };
 
+  const handleSaveUrl = async () => {
+    if (!inputUrl.trim()) {
+      return;
+    }
+    await setScriptUrl(inputUrl);
+    setShowInput(false);
+  };
+
+  const handleClearUrl = async () => {
+    await clearScriptUrl();
+    setInputUrl("");
+    setShowInput(false);
+  };
+
   const openScriptUrl = () => {
-    const url = process.env.EXPO_PUBLIC_SCRIPT_URL;
-    if (url) {
-      Linking.openURL(url);
+    if (scriptUrl) {
+      Linking.openURL(scriptUrl);
     }
   };
 
@@ -54,13 +77,53 @@ export default function SettingsScreen() {
             <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
               Backend
             </ThemedText>
-            <TouchableOpacity style={styles.settingRow} onPress={openScriptUrl}>
-              <View style={styles.settingLabel}>
-                <IconSymbol name="plus" size={20} color={iconColor} />
-                <ThemedText style={styles.settingText}>Script Web App Status</ThemedText>
+            {!showInput ? (
+              <TouchableOpacity style={styles.settingRow} onPress={openScriptUrl}>
+                <View style={styles.settingLabel}>
+                  <IconSymbol name="plus" size={20} color={iconColor} />
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={styles.settingText}>Script Web App</ThemedText>
+                    <ThemedText style={{ fontSize: 12, opacity: 0.6, marginTop: 4 }}>{scriptUrl ? "Configured ✅" : "Missing ❌"}</ThemedText>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    setInputUrl(scriptUrl || "");
+                    setShowInput(true);
+                  }}
+                >
+                  <ThemedText style={{ color: tintColor, fontSize: 14 }}>Edit</ThemedText>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.inputSection}>
+                <ThemedText type="defaultSemiBold" style={{ marginBottom: 8 }}>
+                  Apps Script URL
+                </ThemedText>
+                <TextInput
+                  style={[styles.input, { color: textColor, backgroundColor, borderColor }]}
+                  placeholder="https://script.google.com/macros/s/..."
+                  placeholderTextColor={iconColor}
+                  value={inputUrl}
+                  onChangeText={setInputUrl}
+                  multiline
+                  numberOfLines={3}
+                />
+                <View style={styles.buttonRow}>
+                  <TouchableOpacity style={[styles.actionButton, { backgroundColor: tintColor, flex: 1 }]} onPress={handleSaveUrl}>
+                    <ThemedText style={{ color: "#fff", fontWeight: "600", textAlign: "center" }}>Save</ThemedText>
+                  </TouchableOpacity>
+                  <View style={{ width: 10 }} />
+                  <TouchableOpacity style={[styles.actionButton, { backgroundColor: dangerColor, flex: 1 }]} onPress={handleClearUrl}>
+                    <ThemedText style={{ color: "#fff", fontWeight: "600", textAlign: "center" }}>Clear</ThemedText>
+                  </TouchableOpacity>
+                  <View style={{ width: 10 }} />
+                  <TouchableOpacity style={[styles.actionButton, { backgroundColor: borderColor, flex: 1 }]} onPress={() => setShowInput(false)}>
+                    <ThemedText style={{ color: textColor, fontWeight: "600", textAlign: "center" }}>Cancel</ThemedText>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <ThemedText style={{ color: tintColor, fontSize: 14 }}>{process.env.EXPO_PUBLIC_SCRIPT_URL ? "Configured ✅" : "Missing ❌"}</ThemedText>
-            </TouchableOpacity>
+            )}
           </ThemedView>
 
           <ThemedView style={[styles.section, { borderBottomColor: borderColor }]}>
@@ -104,6 +167,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    flex: 1,
   },
   settingText: {
     fontSize: 16,
@@ -118,5 +182,26 @@ const styles = StyleSheet.create({
     marginTop: 16,
     opacity: 0.4,
     textAlign: "center",
+  },
+  inputSection: {
+    paddingVertical: 12,
+    gap: 12,
+  },
+  input: {
+    borderWidth: 2,
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 14,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  actionButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

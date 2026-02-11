@@ -1,7 +1,6 @@
+import { useScriptUrl } from "@/hooks/use-script-url";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
-
-const SCRIPT_URL = process.env.EXPO_PUBLIC_SCRIPT_URL;
 
 export interface CalendarEvent {
   id: string;
@@ -20,11 +19,12 @@ interface EventContextType {
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
 export function EventProvider({ children }: { children: React.ReactNode }) {
+  const { scriptUrl } = useScriptUrl();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const refreshEvents = useCallback(async (showLoading = true) => {
-    if (!SCRIPT_URL) {
+    if (!scriptUrl) {
       console.warn("Script URL is not configured");
       return;
     }
@@ -32,7 +32,7 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
     if (showLoading) setIsLoading(true);
 
     try {
-      const response = await fetch(SCRIPT_URL);
+      const response = await fetch(scriptUrl);
       const text = await response.text();
 
       if (response.ok) {
