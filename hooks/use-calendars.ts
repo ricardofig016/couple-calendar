@@ -26,31 +26,33 @@ export function useCalendars() {
   const [primaryCalendar, setPrimaryCalendarState] = useState<string | null>(null);
   const [isLoadingCalendars, setIsLoadingCalendars] = useState(true);
 
+  const loadStoredSelections = useCallback(async () => {
+    try {
+      const storedSelected = await AsyncStorage.getItem(SELECTED_CALENDARS_KEY);
+      const storedPrimary = await AsyncStorage.getItem(PRIMARY_CALENDAR_KEY);
+
+      const parsedSelected = storedSelected ? (JSON.parse(storedSelected) as string[]) : [];
+      const nextSelected = Array.isArray(parsedSelected) ? parsedSelected : [];
+      setSelectedCalendarsState(nextSelected);
+
+      const nextPrimary = storedPrimary || null;
+      setPrimaryCalendarState(nextPrimary);
+
+      return { selected: nextSelected, primary: nextPrimary };
+    } catch (error) {
+      console.error("Failed to load calendar selections:", error);
+      return { selected: [], primary: null };
+    }
+  }, []);
+
   useEffect(() => {
     const loadStored = async () => {
-      try {
-        const storedSelected = await AsyncStorage.getItem(SELECTED_CALENDARS_KEY);
-        const storedPrimary = await AsyncStorage.getItem(PRIMARY_CALENDAR_KEY);
-
-        if (storedSelected) {
-          const parsed = JSON.parse(storedSelected) as string[];
-          if (Array.isArray(parsed)) {
-            setSelectedCalendarsState(parsed);
-          }
-        }
-
-        if (storedPrimary) {
-          setPrimaryCalendarState(storedPrimary);
-        }
-      } catch (error) {
-        console.error("Failed to load calendar selections:", error);
-      } finally {
-        setIsLoadingCalendars(false);
-      }
+      await loadStoredSelections();
+      setIsLoadingCalendars(false);
     };
 
     loadStored();
-  }, []);
+  }, [loadStoredSelections]);
 
   const setSelectedCalendars = useCallback(async (ids: string[]) => {
     try {
@@ -78,6 +80,7 @@ export function useCalendars() {
     if (!scriptUrl) return null;
 
     try {
+      const stored = await loadStoredSelections();
       const separator = scriptUrl.includes("?") ? "&" : "?";
       const response = await fetch(`${scriptUrl}${separator}action=listCalendars`);
       const text = await response.text();
@@ -91,14 +94,14 @@ export function useCalendars() {
       setAvailableCalendars(calendars);
 
       const calendarIds = calendars.map((cal) => cal.id).filter(Boolean);
-      const validSelected = selectedCalendars.filter((id) => calendarIds.includes(id));
+      const validSelected = stored.selected.filter((id) => calendarIds.includes(id));
       const nextSelected = validSelected.length > 0 ? validSelected : calendarIds;
 
       if (nextSelected.length > 0) {
         await setSelectedCalendars(nextSelected);
       }
 
-      if (!primaryCalendar || !calendarIds.includes(primaryCalendar)) {
+      if (!stored.primary || !calendarIds.includes(stored.primary)) {
         await setPrimaryCalendar(calendarIds[0] || null);
       }
 
@@ -107,25 +110,27 @@ export function useCalendars() {
       console.error("Failed to fetch calendars:", error);
       return null;
     }
-  }, [primaryCalendar, scriptUrl, selectedCalendars, setPrimaryCalendar, setSelectedCalendars]);
+  }, [loadStoredSelections, scriptUrl, setPrimaryCalendar, setSelectedCalendars]);
 
   const ensureSelectedCalendars = useCallback(async () => {
-    if (selectedCalendars.length > 0) return selectedCalendars;
+    const stored = await loadStoredSelections();
+    if (stored.selected.length > 0) return stored.selected;
 
     const calendars = await fetchCalendarList();
     if (!calendars) return [];
     const calendarIds = calendars.map((cal) => cal.id).filter(Boolean);
     return calendarIds;
-  }, [fetchCalendarList, selectedCalendars]);
+  }, [fetchCalendarList, loadStoredSelections]);
 
   const ensurePrimaryCalendar = useCallback(async () => {
-    if (primaryCalendar) return primaryCalendar;
+    const stored = await loadStoredSelections();
+    if (stored.primary) return stored.primary;
 
     const calendars = await fetchCalendarList();
     if (!calendars || calendars.length === 0) return null;
 
     return calendars[0].id || null;
-  }, [fetchCalendarList, primaryCalendar]);
+  }, [fetchCalendarList, loadStoredSelections]);
 
   return {
     availableCalendars,
