@@ -39,6 +39,8 @@ export default function ManageScreen() {
       pathname: "/",
       params: {
         id: event.id,
+        iCalUid: event.iCalUid,
+        calendarId: event.calendarId,
         title: event.title,
         description: event.description,
         start: event.start,
@@ -47,7 +49,7 @@ export default function ManageScreen() {
     });
   };
 
-  const handleDelete = async (eventId: string) => {
+  const handleDelete = async (event: CalendarEvent) => {
     Alert.alert("Delete Event", "Are you sure you want to delete this event?", [
       { text: "Cancel", style: "cancel" },
       {
@@ -64,13 +66,20 @@ export default function ManageScreen() {
               method: "POST",
               body: JSON.stringify({
                 action: "delete",
-                id: eventId,
+                id: event.id,
+                iCalUid: event.iCalUid,
+                calendarId: event.calendarId,
+                start: event.start,
+                end: event.end,
               }),
             });
-            if (response.ok) {
+            const text = await response.text();
+            const payload = JSON.parse(text) as { ok: boolean; error?: string };
+
+            if (response.ok && payload.ok) {
               refreshEvents();
             } else {
-              throw new Error("Failed to delete event");
+              throw new Error(payload.error || "Failed to delete event");
             }
           } catch (error) {
             Alert.alert("Error", error instanceof Error ? error.message : "Something went wrong");
@@ -219,7 +228,7 @@ export default function ManageScreen() {
                       <TouchableOpacity style={styles.actionButton} onPress={() => handleEdit(event)} disabled={isLoading}>
                         <IconSymbol name="pencil" size={20} color={iconColor} />
                       </TouchableOpacity>
-                      <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(event.id)} disabled={isLoading}>
+                      <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(event)} disabled={isLoading}>
                         <IconSymbol name="trash" size={20} color={iconColor} />
                       </TouchableOpacity>
                       {canExpand[eventKey] ? (

@@ -1,4 +1,5 @@
 import { useEvents } from "@/context/event-context";
+import { useCalendarId } from "@/hooks/use-calendar-id";
 import { useScriptUrl } from "@/hooks/use-script-url";
 import { Preset } from "@/utils/preset";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -9,8 +10,11 @@ export function useEventForm() {
   const router = useRouter();
   const { refreshEvents } = useEvents();
   const { scriptUrl } = useScriptUrl();
+  const { ensureCalendarId } = useCalendarId();
   const params = useLocalSearchParams<{
     id?: string;
+    iCalUid?: string;
+    calendarId?: string;
     title?: string;
     description?: string;
     start?: string;
@@ -18,6 +22,8 @@ export function useEventForm() {
   }>();
 
   const [id, setId] = useState<string | null>(null);
+  const [iCalUid, setICalUid] = useState<string | null>(null);
+  const [calendarId, setCalendarId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isMultiDay, setIsMultiDay] = useState(false);
@@ -57,6 +63,8 @@ export function useEventForm() {
   useEffect(() => {
     if (params.id && params.id !== id) {
       setId(params.id);
+      setICalUid(params.iCalUid || null);
+      setCalendarId(params.calendarId || null);
       setTitle(params.title || "");
       setDescription(params.description || "");
 
@@ -85,6 +93,8 @@ export function useEventForm() {
 
   const clearForm = useCallback(() => {
     setId(null);
+    setICalUid(null);
+    setCalendarId(null);
     setTitle("");
     setDescription("");
     setIsMultiDay(false);
@@ -101,7 +111,7 @@ export function useEventForm() {
     setEndTime(end);
 
     if (params.id) {
-      router.setParams({ id: "", title: "", description: "", start: "", end: "" });
+      router.setParams({ id: "", iCalUid: "", calendarId: "", title: "", description: "", start: "", end: "" });
     }
   }, [params.id, router]);
 
@@ -157,6 +167,12 @@ export function useEventForm() {
     }
 
     try {
+      const resolvedCalendarId = calendarId || (await ensureCalendarId());
+      if (!resolvedCalendarId) {
+        Alert.alert("Error", "No calendar available. Please connect a calendar in Settings.");
+        return;
+      }
+
       const finalTitle = selectedPreset ? selectedPreset.resolveTitle(title, eventStartDate, description) : title;
       const finalDescription = selectedPreset ? selectedPreset.resolve(description) : description;
 
@@ -167,6 +183,8 @@ export function useEventForm() {
         body: JSON.stringify({
           action: action,
           id: id,
+          iCalUid: iCalUid,
+          calendarId: resolvedCalendarId,
           title: finalTitle,
           description: finalDescription,
           start: startIso,
@@ -174,14 +192,17 @@ export function useEventForm() {
         }),
       });
 
-      if (response.ok) {
+      const text = await response.text();
+      const payload = JSON.parse(text) as { ok: boolean; error?: string };
+
+      if (response.ok && payload.ok) {
         clearForm();
         refreshEvents(false);
         if (id) {
           router.push("/manage");
         }
       } else {
-        throw new Error("Failed to save event");
+        throw new Error(payload.error || "Failed to save event");
       }
     } catch (error) {
       Alert.alert("Error", "Something went wrong: " + (error instanceof Error ? error.message : String(error)));

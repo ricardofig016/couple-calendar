@@ -1,13 +1,16 @@
+import { useCalendarId } from "@/hooks/use-calendar-id";
 import { useScriptUrl } from "@/hooks/use-script-url";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
 
 export interface CalendarEvent {
   id: string;
+  iCalUid?: string;
   title: string;
   description: string;
   start: string;
   end: string;
+  calendarId: string;
 }
 
 interface EventContextType {
@@ -20,6 +23,7 @@ const EventContext = createContext<EventContextType | undefined>(undefined);
 
 export function EventProvider({ children }: { children: React.ReactNode }) {
   const { scriptUrl } = useScriptUrl();
+  const { ensureCalendarId } = useCalendarId();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,13 +37,25 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
       if (showLoading) setIsLoading(true);
 
       try {
-        const response = await fetch(scriptUrl);
+        const calendarId = await ensureCalendarId();
+        if (!calendarId) {
+          if (showLoading) {
+            Alert.alert("Error", "No calendar available. Please connect a calendar in Settings.");
+          }
+          return;
+        }
+
+        const separator = scriptUrl.includes("?") ? "&" : "?";
+        const response = await fetch(`${scriptUrl}${separator}action=getEvents&calendarId=${encodeURIComponent(calendarId)}`);
         const text = await response.text();
 
         if (response.ok) {
           try {
-            const data = JSON.parse(text);
-            setEvents(data);
+            const payload = JSON.parse(text) as { ok: boolean; data?: CalendarEvent[]; error?: string };
+            if (!payload.ok || !Array.isArray(payload.data)) {
+              throw new Error(payload.error || "Failed to fetch events.");
+            }
+            setEvents(payload.data);
           } catch (_e) {
             console.error("Failed to parse JSON:", text.substring(0, 100));
             // If we're already loading and it fails, don't show alert to prevent annoying popups on start
@@ -64,7 +80,7 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     refreshEvents();
-  }, [scriptUrl]);
+  }, [refreshEvents]);
 
   return <EventContext.Provider value={{ events, isLoading, refreshEvents }}>{children}</EventContext.Provider>;
 }
