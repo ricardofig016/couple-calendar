@@ -13,7 +13,6 @@ export function useEventForm() {
   const { ensurePrimaryCalendar } = useCalendars();
   const params = useLocalSearchParams<{
     id?: string;
-    iCalUid?: string;
     calendarId?: string;
     title?: string;
     description?: string;
@@ -22,7 +21,6 @@ export function useEventForm() {
   }>();
 
   const [id, setId] = useState<string | null>(null);
-  const [iCalUid, setICalUid] = useState<string | null>(null);
   const [calendarId, setCalendarId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -63,7 +61,6 @@ export function useEventForm() {
   useEffect(() => {
     if (params.id && params.id !== id) {
       setId(params.id);
-      setICalUid(params.iCalUid || null);
       setCalendarId(params.calendarId || null);
       setTitle(params.title || "");
       setDescription(params.description || "");
@@ -93,7 +90,6 @@ export function useEventForm() {
 
   const clearForm = useCallback(() => {
     setId(null);
-    setICalUid(null);
     setCalendarId(null);
     setTitle("");
     setDescription("");
@@ -111,7 +107,7 @@ export function useEventForm() {
     setEndTime(end);
 
     if (params.id) {
-      router.setParams({ id: "", iCalUid: "", calendarId: "", title: "", description: "", start: "", end: "" });
+      router.setParams({ id: "", calendarId: "", title: "", description: "", start: "", end: "" });
     }
   }, [params.id, router]);
 
@@ -183,7 +179,6 @@ export function useEventForm() {
         body: JSON.stringify({
           action: action,
           id: id,
-          iCalUid: iCalUid,
           calendarId: resolvedCalendarId,
           title: finalTitle,
           description: finalDescription,

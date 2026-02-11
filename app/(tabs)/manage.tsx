@@ -39,7 +39,6 @@ export default function ManageScreen() {
       pathname: "/",
       params: {
         id: event.id,
-        iCalUid: event.iCalUid,
         calendarId: event.calendarId,
         title: event.title,
         description: event.description,
@@ -67,7 +66,6 @@ export default function ManageScreen() {
               body: JSON.stringify({
                 action: "delete",
                 id: event.id,
-                iCalUid: event.iCalUid,
                 calendarId: event.calendarId,
                 start: event.start,
                 end: event.end,

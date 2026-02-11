@@ -5,7 +5,6 @@ import { Alert } from "react-native";
 
 export interface CalendarEvent {
   id: string;
-  iCalUid?: string;
   title: string;
   description: string;
   start: string;
