@@ -1,3 +1,4 @@
+import { Checkbox } from "expo-checkbox";
 import { Appearance, Linking, Platform, ScrollView, StyleSheet, Switch, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -6,9 +7,10 @@ import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Fonts } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useCalendars } from "@/hooks/use-calendars";
 import { useScriptUrl } from "@/hooks/use-script-url";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
@@ -21,8 +23,18 @@ export default function SettingsScreen() {
   const dangerColor = useThemeColor({}, "danger");
 
   const { scriptUrl, setScriptUrl, clearScriptUrl } = useScriptUrl();
+  const {
+    availableCalendars,
+    selectedCalendars,
+    primaryCalendar,
+    isLoadingCalendars,
+    fetchCalendarList,
+    setSelectedCalendars,
+    setPrimaryCalendar,
+  } = useCalendars();
   const [inputUrl, setInputUrl] = useState(scriptUrl || "");
   const [showInput, setShowInput] = useState(false);
+  const [isFetchingCalendars, setIsFetchingCalendars] = useState(false);
 
   const isDarkMode = colorScheme === "dark";
 
@@ -47,6 +59,41 @@ export default function SettingsScreen() {
   const openScriptUrl = () => {
     if (scriptUrl) {
       Linking.openURL(scriptUrl);
+    }
+  };
+
+  useEffect(() => {
+    if (!scriptUrl) return;
+    if (availableCalendars.length > 0) return;
+
+    const loadCalendars = async () => {
+      setIsFetchingCalendars(true);
+      await fetchCalendarList();
+      setIsFetchingCalendars(false);
+    };
+
+    loadCalendars();
+  }, [availableCalendars.length, fetchCalendarList, scriptUrl]);
+
+  const handleRefreshCalendars = async () => {
+    if (!scriptUrl) return;
+    setIsFetchingCalendars(true);
+    await fetchCalendarList();
+    setIsFetchingCalendars(false);
+  };
+
+  const toggleCalendarSelection = async (id: string) => {
+    const isSelected = selectedCalendars.includes(id);
+    const nextSelected = isSelected ? selectedCalendars.filter((calId) => calId !== id) : [...selectedCalendars, id];
+
+    await setSelectedCalendars(nextSelected);
+
+    if (primaryCalendar === id && nextSelected.length > 0) {
+      await setPrimaryCalendar(nextSelected[0]);
+    }
+
+    if (nextSelected.length === 0) {
+      await setPrimaryCalendar(null);
     }
   };
 
@@ -122,6 +169,52 @@ export default function SettingsScreen() {
                     <ThemedText style={{ color: textColor, fontWeight: "600", textAlign: "center" }}>Cancel</ThemedText>
                   </TouchableOpacity>
                 </View>
+              </View>
+            )}
+          </ThemedView>
+
+          <ThemedView style={[styles.section, { borderBottomColor: borderColor }]}>
+            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+              Calendars
+            </ThemedText>
+            {!scriptUrl ? (
+              <ThemedText style={styles.helpText}>Set your Apps Script URL above to load calendars.</ThemedText>
+            ) : (
+              <View style={styles.calendarSection}>
+                <View style={styles.calendarHeader}>
+                  <ThemedText style={styles.settingText}>Available Calendars</ThemedText>
+                  <TouchableOpacity onPress={handleRefreshCalendars} disabled={isFetchingCalendars || isLoadingCalendars}>
+                    <ThemedText style={{ color: tintColor, fontSize: 14 }}>{isFetchingCalendars ? "Loading..." : "Refresh"}</ThemedText>
+                  </TouchableOpacity>
+                </View>
+
+                {availableCalendars.length === 0 ? (
+                  <ThemedText style={styles.helpText}>No calendars loaded yet.</ThemedText>
+                ) : (
+                  availableCalendars.map((calendar) => {
+                    const isSelected = selectedCalendars.includes(calendar.id);
+                    const isPrimary = primaryCalendar === calendar.id;
+
+                    return (
+                      <View key={calendar.id} style={styles.calendarRow}>
+                        <TouchableOpacity style={styles.calendarRowLeft} onPress={() => toggleCalendarSelection(calendar.id)}>
+                          <Checkbox value={isSelected} onValueChange={() => toggleCalendarSelection(calendar.id)} color={isSelected ? tintColor : undefined} style={styles.checkbox} />
+                          <View style={{ flex: 1 }}>
+                            <ThemedText style={styles.settingText}>{calendar.name || calendar.id}</ThemedText>
+                            {calendar.description ? <ThemedText style={styles.helpText}>{calendar.description}</ThemedText> : null}
+                          </View>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.primaryBadge, isPrimary && { borderColor: successColor }]}
+                          onPress={() => setPrimaryCalendar(calendar.id)}
+                          disabled={!isSelected}
+                        >
+                          <ThemedText style={{ color: isPrimary ? successColor : textColor, fontSize: 12 }}>{isPrimary ? "Primary" : "Set Primary"}</ThemedText>
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })
+                )}
               </View>
             )}
           </ThemedView>
@@ -204,5 +297,38 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
+  },
+  calendarSection: {
+    gap: 12,
+  },
+  calendarHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  calendarRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  calendarRowLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  primaryBadge: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  checkbox: {
+    borderRadius: 6,
+  },
+  helpText: {
+    fontSize: 12,
+    opacity: 0.6,
   },
 });
