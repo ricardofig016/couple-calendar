@@ -74,9 +74,16 @@ export default function HomeScreen() {
             </ThemedText>
             <PresetList onSelect={applyPreset} isLoading={isLoading} />
 
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-              Title
-            </ThemedText>
+            <View style={styles.labelRow}>
+              <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+                Title
+              </ThemedText>
+              {title && (
+                <TouchableOpacity onPress={() => setTitle("")} disabled={isLoading}>
+                  <ThemedText style={{ color: dangerColor, fontWeight: "600", fontSize: 14 }}>Clear</ThemedText>
+                </TouchableOpacity>
+              )}
+            </View>
             <TextInput
               style={[styles.input, { color, backgroundColor, borderColor }]}
               placeholder="e.g. Dinner Date"
@@ -86,11 +93,18 @@ export default function HomeScreen() {
               editable={!isLoading}
             />
 
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-              Description (Optional)
-            </ThemedText>
+            <View style={styles.labelRow}>
+              <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+                Description (Optional)
+              </ThemedText>
+              {description && (
+                <TouchableOpacity onPress={() => setDescription("")} disabled={isLoading}>
+                  <ThemedText style={{ color: dangerColor, fontWeight: "600", fontSize: 14 }}>Clear</ThemedText>
+                </TouchableOpacity>
+              )}
+            </View>
             <TextInput
-              style={[styles.input, { height: 80, color, backgroundColor, borderColor }]}
+              style={[styles.input, { height: 140, color, backgroundColor, borderColor }]}
               placeholder="Details..."
               placeholderTextColor={iconColor}
               multiline
@@ -238,6 +252,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginTop: 8,
     fontSize: 18,
+  },
+  labelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
   },
   input: {
     borderWidth: 2,

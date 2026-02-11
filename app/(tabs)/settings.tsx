@@ -192,6 +192,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     fontSize: 14,
+    minHeight: 120,
   },
   buttonRow: {
     flexDirection: "row",
