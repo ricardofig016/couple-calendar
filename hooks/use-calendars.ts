@@ -26,6 +26,11 @@ export function useCalendars() {
   const [primaryCalendar, setPrimaryCalendarState] = useState<string | null>(null);
   const [isLoadingCalendars, setIsLoadingCalendars] = useState(true);
 
+  // Clear available calendars when script URL changes to ensure fresh calendar list
+  useEffect(() => {
+    setAvailableCalendars([]);
+  }, [scriptUrl]);
+
   const loadStoredSelections = useCallback(async () => {
     try {
       const storedSelected = await AsyncStorage.getItem(SELECTED_CALENDARS_KEY);

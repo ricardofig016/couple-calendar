@@ -7,8 +7,8 @@
 - [ ] feat: add a meeting preset
 - [ ] feat: add a nap preset
 - [ ] feat: add a daily notification reminder for events happening that day at a user specified time (default 7am, change in settings)
-- [ ] fix: when user inputs and saves deployment id and then refreshes the calendars, the calendars do not appear
 
+- [x] fix: when user inputs and saves deployment id and then refreshes the calendars, the calendars do not appear
 - [x] fix: when the user changes the start time/date in event add, the end time/date should change if it is before the start time and vice versa.
 - [x] chore: remove upcoming features from manage screen
 - [x] feat: make the script input be the Deployment ID instead of the full URL, and construct the URL in the code.
