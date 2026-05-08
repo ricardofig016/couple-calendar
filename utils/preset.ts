@@ -163,4 +163,5 @@ export const PRESETS: Preset[] = [
   new Preset("🎉 Party", "🎉 Party Time", "💃 Get ready to celebrate! ✨\n🥴🍾 Don't drink TOOO much!\n📍 Location: "),
   new Preset("🏋️ Gym", "🏋️ Gym Session", "💪✨ Gains. Gains! GAINS!!\n💧 Don't forget to stay hydrated! 🥤"),
   new Preset("☕ Coffee", "☕ Coffee Date", "📍 Location: \n🥯 Maybe a little treat too? 🥐"),
+  new Preset("👫 Hangout", "👫 Hangout Time", "📍 Location: \n✨ Chill and have fun!"),
 ];
