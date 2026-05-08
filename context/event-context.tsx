@@ -55,12 +55,12 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
             const response = await fetch(
               `${scriptUrl}${separator}action=getEvents&calendarId=${encodeURIComponent(calendarId)}&daysBack=${encodeURIComponent(daysBack)}&daysForward=${encodeURIComponent(daysForward)}`,
             );
-            const text = await response.text();
 
             if (!response.ok) {
-              throw new Error("Failed to fetch events: " + response.status);
+              throw new Error(`Failed to fetch events: HTTP ${response.status}. Please check your deployment ID.`);
             }
 
+            const text = await response.text();
             const payload = JSON.parse(text) as { ok: boolean; data?: CalendarEvent[]; error?: string };
             if (!payload.ok || !Array.isArray(payload.data)) {
               throw new Error(payload.error || "Failed to fetch events.");

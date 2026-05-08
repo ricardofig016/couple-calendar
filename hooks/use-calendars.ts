@@ -88,6 +88,11 @@ export function useCalendars() {
       const stored = await loadStoredSelections();
       const separator = scriptUrl.includes("?") ? "&" : "?";
       const response = await fetch(`${scriptUrl}${separator}action=listCalendars`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch calendars: HTTP ${response.status}. Please check your deployment ID.`);
+      }
+      
       const text = await response.text();
       const payload = JSON.parse(text) as CalendarListResponse;
 
